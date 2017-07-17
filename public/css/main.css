@@ -1,0 +1,219 @@
+
+/** NORMALIZE (taken from normalize.css) *************************************/
+
+/**
+ * 2. Prevent iOS and IE text size adjust after device orientation change,
+ *    without disabling user zoom.
+ */
+html {
+  -ms-text-size-adjust: 100%; /* 2 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+/** MAIN *********************************************************************/
+
+html {
+	font-family: 'HelveticaNeue-Light', 'Helvetica Neue', sans-serif;
+	background: url(../img/photo-1499162526249-f5b8b9ba9923) no-repeat center center fixed; 
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    padding: 10px 10px;
+}
+h1 {
+    background-color: black;
+    color: white;
+    padding: 5px;
+}
+
+.heading {
+    background-color: black;
+    color: white;
+    font-size: 26px;
+    padding: 5px 8px 4px;
+    font-weight: bold;
+    display: inline-block;
+    margin: 0px 0 15px;
+}  
+table {
+    width: 100%;
+    background-color:rgba(0, 0, 0, 0);
+    /*border: 1px dotted #ABEBC6;*/
+    border-collapse: collapse;
+}
+td, th {
+    border: 1px dotted #239B56;/*#bbb;*/
+    padding: 5px 7px 4px;
+    vertical-align: top;
+}
+th {
+    background-color: #1D8348;
+    color: white;
+}
+.cell-0 {
+    border: none;
+    width: 8%;
+}
+.col {
+    width: 22%;
+    font-weight: normal;
+}
+.row-label {
+    text-align: left;
+    color: black;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+div.task {
+    background-color: #D5F5E3;
+    padding: 4px;
+    margin-top: 3px;
+    margin-bottom: 6px;
+    /* "Pointer" icon is relevant to click (for details) and move. 
+     * "Move" icon is only relevant to move. */
+    cursor: pointer;
+}
+.plain-bg {
+    background: #fff;
+}
+.plain-bg2 {
+    background-color: rgba(255, 255, 255, 80);
+}
+
+#hidden-templates {
+    display: none;
+}
+
+/* BUTTONS *******************************************************************/
+
+.row-buttons {
+    /*text-align: right;*/
+}
+
+.btn-task-new {
+    font-weight: normal;
+    font-size: 13px;
+    /*font-family: 'Helvetica Neue', sans-serif;*/
+    background-color: #ddd;
+    padding: 3px 5px 3px 4px;
+    margin-top: 6px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.btn-task-new:hover {
+    background-color: #eee;
+}
+
+.button-container {
+    align-content: right;
+    font-size: 13px;
+    float: right;
+    margin-top: 3px;
+    margin-bottom: 4px;
+}
+
+.button {
+    font-weight: normal;
+    font-size: 13px;
+    background-color: #ddd;
+    padding: 3px 5px 3px 5px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #eee;
+}
+
+/* INTERACTIONS **************************************************************/
+
+[contenteditable] {
+    white-space: pre-wrap;
+    background-color: #f5f3d5; /* black */
+    /*
+    color: springgreen;
+    font-family: 'Courier New', Courier, monospace;
+    */
+
+    padding: 1px 6px 1px;
+    margin-bottom: 5px;
+    margin-top: 7px;
+    /* More intuitive without cursor: move */
+}
+
+/* DETAILS PAGE **************************************************************/
+
+/** Modal */
+.template-task-details {
+    display: none;
+
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+
+    padding-top: 50px;
+    /*
+    xxbackground-color: #000;
+    xxz-index: 10;
+    xxopacity: 0.5;
+    */
+}
+
+.task-details-content {
+    /*
+    z-index: 20;
+    opacity: 1;
+    */
+    margin-left: auto;
+    margin-right: auto;
+    
+    width: 500px;
+    min-height: 500px;
+    padding: 15px 19px 15px 13px;
+    
+    /*
+    margin-left: auto;
+    margin-right: auto;
+    */
+    background-color: #f9f9f9;
+    border: 1px solid #CCC;
+
+    font-family: 'Helvetica Neue', sans-serif;
+}
+
+div.tdc-label {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+div.tdc-description {
+    margin-bottom: 20px;
+    height: 380px;
+}
+
+input.tdc-label {
+    font-size: 23px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+textarea.tdc-description {
+    width: 100%;
+    height: 380px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+.tdc-buttons {
+    text-align: right;
+}
+.tdc-buttons input {
+    background-color: #ddd;
+    font-size: 13px;
+}
+.tdc-buttons input:hover {
+    background-color: #eee;
+}
+.tdc-button-cancel {
+    float: left;
+}

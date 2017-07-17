@@ -1,0 +1,71 @@
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title><%= pageTitle %></title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+        <!-- Place favicon.ico in the root directory -->
+
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="node_modules/dragula/dist/dragula.min.css">
+        <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+        <script src="node_modules/socket.io-client/dist/socket.io.min.js"></script>
+    </head>
+    <body class="wb-socketio-config" data-api="/">
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <div class="heading"><%= heading %></div>
+
+        <!-- Use of tables IS appropiate here... this is tabular data! -->
+        <table class="main">
+            <tr>
+                <td class="cell-0">
+                </td>
+                <th class="col">Todo
+                </th>
+                <th class="col">Paused
+                </th>
+                <th class="col">In progress
+                </th>
+                <th class="col">Done
+                </th>
+            </tr>
+        </table>
+
+        <div id="hidden-templates">
+            <div class="template-task-new">
+                <div class="task-new" contenteditable="contenteditable">Enter text here</div>
+                <div class="button-container">
+                    <span class="button btn-cancel">Cancel</span> 
+                    <span class="button btn-save">Save</span>
+                </div>
+                <!-- TODO: When there is an existing task below the new task, the buttons overlap :( -->
+            </div>
+        </div>
+
+        <div class="template-task-details">
+            <div class="task-details-content" draggable="true">
+                <div><input type="text" name="label" class="tdc-label"></div>
+                <div><textarea name="description" class="tdc-description"></textarea></div> 
+                <div class="tdc-buttons">
+                    <input type="button" class="tdc-button-cancel" value="Cancel">
+                    <input type="button" class="tdc-button-archive" value="Archive">
+                    <input type="button" class="tdc-button-save" value="Save">
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-placeholder"></div>
+
+        <script src="node_modules/dragula/dist/dragula.min.js"></script>
+        <script src="js/vendor/jquery-1.12.0.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')</script>
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>

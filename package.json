@@ -4,6 +4,10 @@
   "description": "API for WikiBoard",
   "dependencies": {
     "express": "^4.10.2",
-    "socket.io": "^1.7.3"
+    "mysql": "^2.13.0",
+    "socket.io": "^1.7.3",
+    "minimist": "*",
+    "mustache-express": "^1.2.5",
+    "ejs": "^1.0.0"
   }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "zen-board-js",
+  "version": "0.0.1",
+  "description": "Zen Board",
+  "dependencies": {
+    "dragula": "^3.7.2",
+    "socket.io-client": "1.7.3"
+  }
+}
