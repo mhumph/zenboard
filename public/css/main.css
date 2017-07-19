@@ -74,6 +74,15 @@ div.task {
      * "Move" icon is only relevant to move. */
     cursor: pointer;
 }
+div.task:hover {
+    background-color: rgba(213, 245, 227, 0.7);
+    padding: 4px;
+    margin-top: 3px;
+    margin-bottom: 6px;
+    /* "Pointer" icon is relevant to click (for details) and move. 
+     * "Move" icon is only relevant to move. */
+    cursor: pointer;
+}
 .plain-bg {
     background: #fff;
 }
@@ -103,7 +112,7 @@ div.task {
 }
 
 .btn-task-new:hover {
-    background-color: #eee;
+    background-color: rgba(221, 221, 221, 0.7);/*#eee*/;
 }
 
 .button-container {
@@ -123,23 +132,29 @@ div.task {
 }
 
 .button:hover {
-    background-color: #eee;
+    background-color: rgba(221, 221, 221, 0.7);/*#eee;*/
 }
 
 /* INTERACTIONS **************************************************************/
 
 [contenteditable] {
+    z-index: 100;
+
     white-space: pre-wrap;
-    background-color: #f5f3d5; /* black */
+    background-color: #fffbdd; /*#f5f3d5;*/
     /*
     color: springgreen;
     font-family: 'Courier New', Courier, monospace;
     */
 
-    padding: 1px 6px 1px;
+    padding: 4px; /*3px 6px 4px 4px;*/
     margin-bottom: 5px;
     margin-top: 7px;
     /* More intuitive without cursor: move */
+}
+
+[contenteditable]:hover {
+    background-color: rgba(255, 251, 221, 0.6);
 }
 
 /* DETAILS PAGE **************************************************************/
@@ -171,14 +186,14 @@ div.task {
     margin-right: auto;
     
     width: 500px;
-    min-height: 500px;
+    min-height: 450px;
     padding: 15px 19px 15px 13px;
     
     /*
     margin-left: auto;
     margin-right: auto;
     */
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* #d5f5f3; */
     border: 1px solid #CCC;
 
     font-family: 'Helvetica Neue', sans-serif;
@@ -196,12 +211,12 @@ div.tdc-description {
 input.tdc-label {
     font-size: 23px;
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 textarea.tdc-description {
     width: 100%;
     height: 380px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-size: 16px;
 }
 .tdc-buttons {

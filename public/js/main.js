@@ -30,25 +30,45 @@ var zenBoard = {
 			$template.addClass('temp').show();
 			$template.children('[contenteditable]').get(0).focus();
 
+			function save($taskContainer) {
+				//var $taskContainer = $(that).parents('.template-task-new');
+				var label = $taskContainer.find('.task-new').text();
+				if (label) {
+					var $cell = $taskContainer.parents('td');
+					var rowId = $cell.attr('data-row-id');
+					var colId = $cell.attr('data-col-id');
+
+					var data = {
+						rowId: rowId,
+						colId: colId,
+						label: label,
+						insertAt: $taskContainer.prevAll().length
+					}
+					socket.emit('task:create', data);
+				} else {
+					$template.remove();
+				}
+			}
+
 			$template.find('.btn-cancel').click(function() {
-				console.log('cancel');
 				$template.remove();
 			});
 			$template.find('.btn-save').click(function() {
-				var $taskContainer = $(this).parents('.template-task-new');
-				var $cell = $taskContainer.parents('td');
-				var rowId = $cell.attr('data-row-id');
-				var colId = $cell.attr('data-col-id');
-				var label = $taskContainer.find('.task-new').text();
-
-				var data = {
-					rowId: rowId,
-					colId: colId,
-					label: label,
-					insertAt: $taskContainer.prevAll().length
-				}
-				socket.emit('task:create', data);
+				$taskContainer = $(this).parents('.template-task-new');
+				save($taskContainer);
 			});
+
+			// Keyboard shortcuts
+		  	$template.keydown(function(event) {
+		  		// (CTRL or CMD) + Enter
+		  		if ((event.ctrlKey || event.metaKey) && event.which === 13) {
+		            save($(this));
+		            return false;
+		        }
+		        if (event.which === 27) { // Escape
+		            $template.remove();
+		        }
+		  	});
 		});
 	},
 
@@ -58,6 +78,7 @@ var zenBoard = {
 			var tr = $("<tr>").attr('data-row-id', row.id)
 			var cell1 = $("<th class='row-label plain-bg'>").text(row.label)
 			var addBtn = $("<div class='row-buttons'><div class='btn-task-new'>+ Add task</div></div>");
+			//var addBtn = $("<div class='row-buttons'><input type='button' class='btn-task-new' value='+ Add task'></div>");
 			cell1.append(addBtn);
 
 			// REFACTOR: Extract method to create cell
@@ -125,9 +146,13 @@ var zenBoard = {
 
 			// TODO: Save draft data against elements
 
-			$('.tdc-button-save').click(function() {
+			function save() {
 				var saveId = $('.template-task-details').data('data-id');
 		  		zenBoard.saveTask(saveId, $label.val(), $description.val());
+			}
+
+			$('.tdc-button-save').click(function() {
+				save();
 		  	});
 
 			// Clicking away from the details box should close it
@@ -137,6 +162,18 @@ var zenBoard = {
 		  	$template.find(".task-details-content").click(function(e) {
 		  		// Do nothing
 		  		return false; // or... e.stopPropagation();
+		  	});
+
+		  	// Keyboard shortcuts
+		  	$template.keydown(function(event) {
+		  		// (CTRL or CMD) + Enter
+		  		if ((event.ctrlKey || event.metaKey) && event.which === 13) {
+		            save();
+		            return false;
+		        }
+		        if (event.which === 27) { // Escape
+		            $template.hide();
+		        }
 		  	});
 	  	})
 	  	.fail(function(jqXHR, textStatus) {
@@ -210,6 +247,7 @@ $(function() {
 		console.log($cell);
 		$cell.find('.template-task-new').replaceWith($newTask);
 		console.log($cell.find('.template-task-new'));
+		// TODO: Test this
 	});
 
 	socket.on('task:save:success', function(data) {
