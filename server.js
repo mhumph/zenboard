@@ -98,6 +98,8 @@ io.on('connection', function(socket) {
 
       if (!error) {
         updateCell(arg, socket);
+        // Tell other clients to move the task too
+        socket.broadcast.emit('task:move:sync', arg);
       }
       emitAction(error, 'task:move', arg, socket);
     });
@@ -127,6 +129,7 @@ io.on('connection', function(socket) {
     var sql = 'UPDATE task SET label = ?, description = ?, is_archived = ? WHERE id = ?';
     var sqlArgs = [arg.label, arg.description, arg.isArchived, arg.id];
     connection.query(sql, sqlArgs, function (error, results, fields) {
+      // TODO: If it's archived then set my_order to... null? large int?
       emitAction(error, 'task:save', arg, socket);
     });
   });

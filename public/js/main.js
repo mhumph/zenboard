@@ -209,8 +209,10 @@ var zenBoard = {
 	    		var rowId = $cell.attr('data-row-id');
 	    		var colId = $cell.attr('data-col-id');
 	    		var insertAt = $task.prevAll().length;
+	    		var insertAfterId = $task.prev('.task').attr('data-id');
 
-	    		var data = {'id': id, 'rowId': rowId, 'colId': colId, 'insertAt': insertAt};
+	    		// REFACTOR: Rename insertAt to insertAtIndex
+	    		var data = {'id': id, 'rowId': rowId, 'colId': colId, 'insertAt': insertAt, 'ui_insertAfterId': insertAfterId};
 	    		console.log('drop', data);
 		    	socket.emit('task:move', data);
 		    } else {
@@ -267,9 +269,6 @@ $(function() {
 $(function() {
 	var apiUrl = $('.wb-socketio-config').attr('data-api');
 	var boardId = 'metro-dev';
-
-	// var options = {'timeout': 10000, 'reconnectionDelay': 2000, 'reconnectionDelayMax': 10000};
-	console.log(apiUrl);
 	socket = io(apiUrl);
 
 	function addTask(data) {
@@ -307,6 +306,22 @@ $(function() {
 			}
 		}
 	});
+
+	/* CHANGES FROM OTHER USERS **********************************************/
+
+	socket.on('task:move:sync', function(data) {
+		console.log('move:sync', data);
+		$task = $(".task[data-id=" + data.id + "]").remove();
+		if (data.ui_insertAfterId) {
+			$prevTask = $(".task[data-id=" + data.ui_insertAfterId + "]");
+			$task.insertAfter($prevTask);	
+		} else {
+			$cell = $('#row' + data.rowId + 'col' + data.colId);
+			$task.prependTo($cell);
+		}
+	});
+
+	/* ERRORS ****************************************************************/
 
 	socket.on('task:create:error', function(data) {
 		zenBoard.handleError("Sorry, there was an error saving the task", 'task:create:error', data);
