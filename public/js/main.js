@@ -13,7 +13,7 @@ var zenBoard = {
 		    zenBoard.initRows(data);
 		  })
 		  .fail(function(jqXHR, textStatus) {
-		    alert( "error" );
+		    alert("Error fetching board");
 		  })
 	},
 
@@ -96,6 +96,8 @@ var zenBoard = {
 		}
 		zenBoard.fetchAndInitTasks();
 		zenBoard.initTaskButtons();
+
+		zenBoard.fetchAndInitArchive();
 	},
 
 	fetchAndInitTasks: function(rowId) {
@@ -136,32 +138,36 @@ var zenBoard = {
 			var description = (data.description) ? data.description : '';
 			var $description = $template.find('.tdc-description');
 			var $label = $template.find('.tdc-label');
+			var $archive = $template.find('input.tdc-archive');
+			var isArchivedOriginal = (data.is_archived === 1);
+			var $content = $template.find('.task-details-content');
 
 			$template.data('data-id', taskId);
 			$label.val(data.label);
 			$description.val(description);
+			$archive.prop('checked', (data.is_archived === 1));
 
 			$template.show();
 			$description.get(0).focus();
 
-			// TODO: Save draft data against elements
+			// TODO: Save draft data against DOM
 
 			function save() {
 				var saveId = $('.template-task-details').data('data-id');
-		  		zenBoard.saveTask(saveId, $label.val(), $description.val());
+				var isArchived = ($archive.prop('checked') === true);
+		  		zenBoard.saveTask(saveId, $label.val(), $description.val(), isArchived, data);
 			}
 
-			$('.tdc-button-save').click(function() {
+			$('.tdc-button-save').off().click(function() {
+				console.log('Save button was clicked');
 				save();
 		  	});
 
-			// Clicking away from the details box should close it
-		  	$template.click(function() {
-		  		$template.hide();
-		  	});
-		  	$template.find(".task-details-content").click(function(e) {
-		  		// Do nothing
-		  		return false; // or... e.stopPropagation();
+			// Clicking outside the details box should close it
+		  	$template.off().click(function(e) {
+		  		if (!$content.is(e.target) && $content.has(e.target).length === 0) {
+		  			$template.hide();
+		  		}
 		  	});
 
 		  	// Keyboard shortcuts
@@ -184,7 +190,7 @@ var zenBoard = {
 	  	});
 	  	$('.tdc-button-archive').click(function() {
 	  		console.log('archive');
-	  		// TODO: Archive
+	  		alert("Archiving feature coming soon!");
 	  	});
 	},
 
@@ -218,10 +224,37 @@ var zenBoard = {
 		console.log(event, data);
 	},
 
-	saveTask: function(taskId, label, description) {
+	saveTask: function(taskId, label, description, isArchived, originalData) {
 		console.log('saveTask', taskId);
-		socket.emit('task:save', {'id': taskId, 'label': label, 'description': description});
-	}
+		socket.emit('task:save', {
+			'id': taskId, 'label': label, 'description': description, 'isArchived': isArchived, 
+			'originalData': originalData, 'timestamp': new Date().getTime()
+		});
+	},
+
+	/* ARCHIVE ***************************************************************/
+
+	fetchAndInitArchive: function() {
+		var jqxhr = $.ajax( zenBoard.getApiBaseUrl() + 'archive/tasks' )
+		  .done(function(data, textStatus) {
+		  	console.log('fetchAndInitArchive');
+		    zenBoard.initArchive(data);
+		  })
+		  .fail(function(jqXHR, textStatus) {
+		    alert("Error fetching archive");
+		  })
+	},
+
+	initArchive: function(archivedTasks) {
+		$('.archived-tasks-content').html('');
+		for (var i = 0; i < archivedTasks.length; i++) {
+			var item = archivedTasks[i];
+			var $item = $("<div class='archived-task'>").attr('data-id', item.id).text(item.label);
+			// REFACTOR: <br> hack... try this instead https://stackoverflow.com/a/451076/1454618
+			$item.click(zenBoard.showTaskDetails)
+			$item.appendTo('.archived-tasks-content').after('<br>');
+		}
+	},
 }
 
 // UI events
@@ -239,25 +272,48 @@ $(function() {
 	console.log(apiUrl);
 	socket = io(apiUrl);
 
-	socket.on('task:create:success', function(data) {
+	function addTask(data) {
 		console.log(data);
-		var $newTask = zenBoard.createTaskElement(data);
-		console.log($newTask);
-		$cell = $('#row' + data.rowId + 'col' + data.colId);
-		console.log($cell);
-		$cell.find('.template-task-new').replaceWith($newTask);
-		console.log($cell.find('.template-task-new'));
-		// TODO: Test this
+		if (data.rowId && data.colId) {
+			var $newTask = zenBoard.createTaskElement(data);
+			$cell = $('#row' + data.rowId + 'col' + data.colId);
+			$cell.find('.template-task-new').replaceWith($newTask);
+		} else {
+			console.log("Warning! rowId or colId invalid");
+		}
+	}
+
+	socket.on('task:create:success', function(data) {
+		addTask(data);
 	});
 
 	socket.on('task:save:success', function(data) {
-		console.log('task:save:success');
-		$(".task[data-id='" + data.id + "']").text(data.label);
+		console.log('task:save:success', data);
+
+		var $task = $(".task[data-id='" + data.id + "']");
+		$task.text(data.label);
 		$('.template-task-details').hide();
+
+		// If archived status has changed
+		if (data.originalData.isArchived != data.isArchived) {
+			zenBoard.fetchAndInitArchive();
+			if (data.isArchived === true) {
+				$task.remove();
+			} else {
+				var $newTask = zenBoard.createTaskElement(data);
+				$cell = $('#row' + data.originalData.row_id + 'col' + data.originalData.col_id);
+				console.log(data);
+				$cell.append($newTask);
+			}
+		}
 	});
 
 	socket.on('task:create:error', function(data) {
 		zenBoard.handleError("Sorry, there was an error saving the task", 'task:create:error', data);
+	});
+
+	socket.on('task:save:error', function(data) {
+		zenBoard.handleError("Sorry, there was an error saving the task", 'task:save:error', data);
 	});
 
 	socket.on('task:move:error', function(data) {

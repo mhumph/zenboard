@@ -37,12 +37,18 @@
             </tr>
         </table>
 
+        <div class="archived-tasks">
+            <h3>Archive</h3>
+            <div class="archived-tasks-content">
+            </div>
+        </div>
+
         <div id="hidden-templates">
             <div class="template-task-new">
                 <div class="task-new" contenteditable="true"></div>
                 <div class="button-container">
-                    <span class="button btn-cancel">Cancel</span> 
-                    <span class="button btn-save">Save</span>
+                    <span class="button btn-cancel" title="[Esc]">Cancel</span> 
+                    <span class="button btn-save" title="[CMD + Enter]">Save</span>
                 </div>
                 <!-- TODO: When there is an existing task below the new task, the buttons overlap :( -->
             </div>
@@ -51,16 +57,17 @@
         <div class="template-task-details">
             <div class="task-details-content" draggable="true">
                 <div><input type="text" name="label" class="tdc-label"></div>
-                <div><textarea name="description" class="tdc-description"></textarea></div> 
+                <div><textarea name="description" class="tdc-description"></textarea></div>
+                <div class="tdc-archive">Archive <input type="checkbox" name="archive" class="tdc-archive"></div> 
                 <div class="tdc-buttons">
-                    <input type="button" class="tdc-button-cancel" value="Cancel">
-                    <input type="button" class="tdc-button-archive" value="Archive">
-                    <input type="button" class="tdc-button-save" value="Save">
+                    <input type="button" class="tdc-button-cancel" value="Cancel" title="[Esc]">
+                    <!-- <input type="button" class="tdc-button-archive" value="Archive"> -->
+                    <input type="button" class="tdc-button-save" value="Save" title="[CMD + Enter]">
                 </div>
             </div>
         </div>
 
-        <div id="modal-placeholder"></div>
+        <!-- <div id="modal-placeholder"></div> -->
 
         <script src="node_modules/dragula/dist/dragula.min.js"></script>
         <script src="js/vendor/jquery-1.12.0.min.js"></script>

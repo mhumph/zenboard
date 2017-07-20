@@ -19,7 +19,7 @@ connection.connect();
 
 
 
-// Enable CORS (to support other UIs)
+/** Enable CORS (to support other UIs) */
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -41,9 +41,9 @@ app.get('/api/rows/', function(req, res) {
   });
 });
 
-/** Get all tasks */
+/** Get all (unarchived) tasks */
 app.get('/api/tasks/', function(req, res) {
-  connection.query('SELECT id, label, row_id, col_id FROM task ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
     sendArray(res, results, error);
   });
 });
@@ -60,6 +60,13 @@ app.post('/api/tasks/:id', function(req, res) {
   var args = [req.title, req.description, req.params.id]
   connection.query('UPDATE task SET title = ?, description = ? WHERE id = ?', args, function (error, results, fields) {
     sendObject(res, results, error);
+  });
+});
+
+/** Get archived tasks. TODO: Order by archive date (instead of created date). */
+app.get('/api/archive/tasks/', function(req, res) {
+  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
+    sendArray(res, results, error);
   });
 });
 
@@ -117,8 +124,8 @@ io.on('connection', function(socket) {
   socket.on('task:save', function(arg) {
     console.log('task:save', arg);
 
-    var sql = 'UPDATE task SET label = ?, description = ? WHERE id = ?';
-    var sqlArgs = [arg.label, arg.description, arg.id];
+    var sql = 'UPDATE task SET label = ?, description = ?, is_archived = ? WHERE id = ?';
+    var sqlArgs = [arg.label, arg.description, arg.isArchived, arg.id];
     connection.query(sql, sqlArgs, function (error, results, fields) {
       emitAction(error, 'task:save', arg, socket);
     });
