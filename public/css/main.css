@@ -21,12 +21,10 @@ html {
     background-size: cover;
     padding: 10px 10px;
 }
-h1 {
-    background-color: black;
-    color: white;
-    padding: 5px;
-}
 
+.masthead {
+    width: 229px;
+}
 .heading {
     background-color: black;
     color: white;
@@ -35,7 +33,23 @@ h1 {
     font-weight: bold;
     display: inline-block;
     margin: 0px 0 15px;
-}  
+}
+.nav {
+    padding-top: 2px;
+    float: right;
+}
+.nav-item {
+    background-color: #ddd;
+    padding: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.nav-item:hover {
+    background-color: #eee; /*rgba(221, 221, 221, 0.7)*/
+}
+
+/* MAIN TABLE ****************************************************************/
+
 table {
     width: 100%;
     background-color:rgba(0, 0, 0, 0);
@@ -59,11 +73,14 @@ th {
     width: 22%;
     font-weight: normal;
 }
-.row-label {
+.row-heading {
     text-align: left;
     color: black;
     padding-top: 12px;
     padding-bottom: 12px;
+}
+.row-label {
+    cursor: pointer;
 }
 div.task {
     background-color: #D5F5E3;
@@ -159,8 +176,8 @@ div.task:hover {
 
 /* DETAILS PAGE **************************************************************/
 
-/** Modal */
-.template-task-details {
+/** Modal .template-task-details */
+.template-modal {
     display: none;
     position: fixed;
     z-index: 1;
@@ -174,7 +191,8 @@ div.task:hover {
     overflow: auto; /* Enable scroll if needed */
 }
 
-.task-details-content {
+/* .task-details-content */
+.modal-content {
     margin: 5% auto;
     width: 70%;
     max-width: 500px;
@@ -183,42 +201,50 @@ div.task:hover {
     border: 1px solid #CCC;
     font-family: 'Helvetica Neue', sans-serif;
 }
-
-div.tdc-label {
+.form-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+div.form-label {
     font-size: 24px;
     margin-bottom: 20px;
 }
-div.tdc-description {
+div.form-textarea {
     margin-bottom: 20px;
     height: 380px;
 }
-div.tdc-archive {
+div.form-archive {
     margin-bottom: 20px;
 }
 
-input.tdc-label {
+input.form-label {
     font-size: 23px;
     width: 100%;
     margin-bottom: 15px;
 }
-textarea.tdc-description {
+textarea.form-textarea {
     width: 100%;
     height: 380px;
     margin-bottom: 10px;
     font-size: 16px;
 }
-.tdc-buttons {
+.modal-buttons  {
     text-align: right;
 }
-.tdc-buttons input {
+.modal-buttons  input {
     background-color: #ddd;
     font-size: 13px;
 }
-.tdc-buttons input:hover {
+.modal-buttons  input:hover {
     background-color: #eee;
 }
-.tdc-button-cancel {
-    float: left;
+.modal-cancel {
+    float: left;   
+}
+
+.trc-position {
+    margin-bottom: 15px;
 }
 
 /* ARCHIVE *******************************************************************/

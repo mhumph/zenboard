@@ -19,7 +19,14 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <div class="heading"><%= heading %></div>
+        <div class="masthead">
+            <div class="heading">
+                <%= heading %>
+            </div>
+            <div class="nav">
+                <span class="nav-item btn-row-new">+ Add row</span>
+            </div>
+        </div>
 
         <!-- Use of tables IS appropiate here... this is tabular data! -->
         <table class="main">
@@ -28,7 +35,7 @@
                 </td>
                 <th class="col">Todo
                 </th>
-                <th class="col">Paused
+                <th class="col">Blocked
                 </th>
                 <th class="col">In progress
                 </th>
@@ -54,15 +61,34 @@
             </div>
         </div>
 
-        <div class="template-task-details">
-            <div class="task-details-content" draggable="true">
-                <div><input type="text" name="label" class="tdc-label"></div>
-                <div><textarea name="description" class="tdc-description"></textarea></div>
-                <div class="tdc-archive">Archive <input type="checkbox" name="archive" class="tdc-archive"></div> 
-                <div class="tdc-buttons">
-                    <input type="button" class="tdc-button-cancel" value="Cancel" title="[Esc]">
+        <div class="template-task-details template-modal">
+            <div class="task-details-content modal-content">
+                <div><input type="text" name="label" class="tdc-label form-label"></div>
+                <div><textarea name="description" class="tdc-description form-textarea"></textarea></div>
+                <div class="tdc-archive form-archive">Archive <input type="checkbox" name="archive" class="tdc-archive form-archive"></div> 
+                <div class="modal-buttons tdc-buttons">
+                    <input type="button" class="modal-cancel tdc-button-cancel" value="Cancel" title="[Esc]">
                     <!-- <input type="button" class="tdc-button-archive" value="Archive"> -->
-                    <input type="button" class="tdc-button-save" value="Save" title="[CMD + Enter]">
+                    <input type="button" class="modal-save tdc-button-save" value="Save" title="[CMD + Enter]">
+                </div>
+            </div>
+        </div>
+
+        <div class="template-row-details template-modal">
+            <div class="row-details-content modal-content">
+                <div class="form-title">New row</div>
+                <div><input type="text" name="label" class="trc-label form-label" placeholder="Label"></div>
+                <div class="trc-position">Position
+                    <select name="insert-after">
+                        <option value="0">1 (top)</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div><textarea name="info" class="trc-info form-textarea" placeholder="Any additional info"></textarea></div>
+                
+                <div class="modal-buttons trc-buttons">
+                    <input type="button" class="modal-cancel trc-button-cancel" value="Cancel" title="[Esc]">
+                    <input type="button" class="modal-save trc-button-save" value="Save" title="[CMD + Enter]">
                 </div>
             </div>
         </div>

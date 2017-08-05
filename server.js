@@ -36,8 +36,15 @@ app.get('/', function (req, res) {
 
 /** Get all rows */
 app.get('/api/rows/', function(req, res) {
-  connection.query('SELECT id, label FROM row ORDER BY my_order ASC', function (error, results, fields) {
+  connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
     sendArray(res, results, error);
+  });
+});
+
+/** Get row by id */
+app.get('/api/rows/:id', function(req, res) {
+  connection.query('SELECT id, label, my_order, info FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
+    sendObject(res, results, error);
   });
 });
 
@@ -48,17 +55,9 @@ app.get('/api/tasks/', function(req, res) {
   });
 });
 
-/** Get task */
+/** Get task by id */
 app.get('/api/tasks/:id', function(req, res) {
   connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
-    sendObject(res, results, error);
-  });
-});
-
-/** Save task */
-app.post('/api/tasks/:id', function(req, res) {  
-  var args = [req.title, req.description, req.params.id]
-  connection.query('UPDATE task SET title = ?, description = ? WHERE id = ?', args, function (error, results, fields) {
     sendObject(res, results, error);
   });
 });
@@ -134,9 +133,36 @@ io.on('connection', function(socket) {
     });
   });
 
+  socket.on('row:save', function(arg) {
+    console.log('row:save', arg);
+
+    var sqlArgs = [arg.label, arg.myOrder, arg.info, arg.id];
+    var sql = '';
+    if (arg.id) {
+      sql = 'UPDATE row SET label = ?, my_order = ?, info = ? WHERE id = ?';
+    } else {
+      sql = 'INSERT INTO row (label, my_order, info) VALUES (?, ?, ?)';
+    }
+    console.log(sql);
+
+    connection.query(sql, sqlArgs, function (error, results, fields) {
+      if (!error) {
+        if (results && results.insertId) {
+          arg.id = results.insertId;
+        }
+        updateRowList(arg, socket);
+      }
+      emitAction(error, 'row:save', arg, socket);
+    });
+  });
+
 });
 
-/** Update order for tasks lower down the cell */
+/** 
+ * TODO. We should only increment my_order for items between new and 
+ **/
+
+/** Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList */
 function updateCell(arg, socket) {
   var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND id != ?';
   var sqlArgs = [arg.rowId, arg.colId, arg.insertAt, arg.id];
@@ -144,6 +170,25 @@ function updateCell(arg, socket) {
 
   connection.query(sql, sqlArgs, function (error, results, fields) {
     emitAction(error, 'cell:update', arg, socket);
+  });
+}
+
+/** Update order for rows lower down the list */
+function updateRowList(arg, socket) {
+  var MAX_ORDER = 1000000;
+  var sqlArgs = [arg.myOrder, (arg.originalData.my_order || MAX_ORDER), arg.id];
+
+  // Default SQL for when row's order is DEcreased
+  var sql = 'UPDATE row SET my_order = (my_order + 1) WHERE my_order >= ? and my_order <= ? AND id != ?';
+  if (parseInt(arg.myOrder) > arg.originalData.my_order) {
+    // For when row's order is INcreased
+    sql = 'UPDATE row SET my_order = (my_order - 1) WHERE my_order <= ? and my_order >= ? AND id != ?';
+  }
+  // TODO: Similar my_order logic for tasks
+
+  console.log(sql, sqlArgs);
+  connection.query(sql, sqlArgs, function (error, results, fields) {
+    emitAction(error, 'row-list:update', arg, socket);
   });
 }
 
