@@ -20,31 +20,11 @@ var zenBoard = {
 	initRows: function(rows) {
 		for (var i = 0; i < rows.length; i++) {
 			var row = rows[i];
-			// REFACTOR: Use initRow instead
-			var tr = $("<tr class='row'>").attr('data-row-id', row.id);
-			var $label = $("<span class='row-label'>").text(row.label).click(function() {
-				zenBoard.fetchAndShowRowDetails(this);
-			});
-			var cell1 = $("<th class='row-heading plain-bg'>").append($label);
-			var addBtn = $("<div class='row-buttons'><div class='btn-task-new'>+ Add task</div></div>");
-			//var addBtn = $("<div class='row-buttons'><input type='button' class='btn-task-new' value='+ Add task'></div>");
-			cell1.append(addBtn);
-
-			// REFACTOR: Extract method to create cell
-			var cell2 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col1')
-				.attr('data-row-id', row.id).attr('data-col-id', '1')
-			var cell3 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col2')
-				.attr('data-row-id', row.id).attr('data-col-id', '2')
-			var cell4 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col3')
-				.attr('data-row-id', row.id).attr('data-col-id', '3')
-			var cell5 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col4')
-				.attr('data-row-id', row.id).attr('data-col-id', '4')
-			
-			tr.append(cell1).append(cell2).append(cell3).append(cell4).append(cell5);
+			var tr = zenBoard.initRow(row);
 			tr.appendTo('.main');
 		}
 		zenBoard.fetchAndInitTasks();
-		zenBoard.initTaskButtons();
+		$('.action-task-new').click(zenBoard.newTaskHandler);
 	},
 
 	initRow: function(row) {
@@ -53,22 +33,26 @@ var zenBoard = {
 			zenBoard.fetchAndShowRowDetails(this);
 		});
 		var cell1 = $("<th class='row-heading plain-bg'>").append(label);
-		var addBtn = $("<div class='row-buttons'><div class='btn-task-new'>+ Add task</div></div>");
-		//var addBtn = $("<div class='row-buttons'><input type='button' class='btn-task-new' value='+ Add task'></div>");
+		var addBtn = $("<div class='row-buttons'><div class='btn-task-new action-task-new'>+ Add task</div></div>").hide();
+		//var addBtn = $("<div class='row-buttons'><input type='button' class='btn-task-new action-task-new' value='+ Add task'></div>");
 		cell1.append(addBtn);
-
-		// REFACTOR: Extract method to create cell
-		var cell2 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col1')
-			.attr('data-row-id', row.id).attr('data-col-id', '1')
-		var cell3 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col2')
-			.attr('data-row-id', row.id).attr('data-col-id', '2')
-		var cell4 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col3')
-			.attr('data-row-id', row.id).attr('data-col-id', '3')
-		var cell5 = $("<td class='task-group plain-bg'>").attr('id',  'row' + row.id + 'col4')
-			.attr('data-row-id', row.id).attr('data-col-id', '4')
+		var cell2 = zenBoard.initCell(row, 1);
+		var cell3 = zenBoard.initCell(row, 2);
+		var cell4 = zenBoard.initCell(row, 3);
+		var cell5 = zenBoard.initCell(row, 4);
 		
 		tr.append(cell1).append(cell2).append(cell3).append(cell4).append(cell5);
+		tr.hover(
+			function() {$(this).find('.row-buttons').show();},
+			function() {$(this).find('.row-buttons').hide();}
+		); 
 		return tr;
+	},
+
+	initCell: function(row, colNumber) {
+		return $("<td class='task-group plain-bg'>")
+			.attr('id',  'row' + row.id + 'col' + colNumber)
+			.attr('data-row-id', row.id).attr('data-col-id', '' + colNumber);
 	},
 
 	fetchAndInitTasks: function(rowId) {
@@ -98,59 +82,62 @@ var zenBoard = {
 			.click(zenBoard.showTaskDetails);
 	},
 
-	initTaskButtons: function() {
-		console.log('initTaskButtons');
-		$('.btn-task-new').click(function() {
-			// Remove any pre-existing new tasks
-			$('.template-task-new.temp').remove();
+	newTaskHandler: function() {
+		console.log('newTaskHandler');
+		// Remove any pre-existing new tasks
+		$('.template-task-new.temp').remove();
 
-			var $row = $(this).parents('tr');
-			var $target = $row.find("td[data-col-id='1']");
-			var $template = $('#hidden-templates .template-task-new').clone();
-			$target.append($template);
-			$template.addClass('temp').show();
-			$template.children('[contenteditable]').get(0).focus();
+		var $row = $(this).parents('tr')
+		if (!$row.length) {
+			// Probs clicked "Add task" in the masthead navigation. Default to first row.
+			$row = $('table.main tr.row').first();
+		}
+		console.log("$row", $row);
+		var $target = $row.find("td[data-col-id='1']");
+		var $template = $('#hidden-templates .template-task-new').clone();
+		$target.append($template);
+		$template.addClass('temp').show();
+		$template.children('[contenteditable]').get(0).focus();
 
-			function save($taskContainer) {
-				//var $taskContainer = $(that).parents('.template-task-new');
-				var label = $taskContainer.find('.task-new').text();
-				if (label) {
-					var $cell = $taskContainer.parents('td');
-					var rowId = $cell.attr('data-row-id');
-					var colId = $cell.attr('data-col-id');
+		function save($taskContainer) {
+			//var $taskContainer = $(that).parents('.template-task-new');
+			var label = $taskContainer.find('.task-new').text();
+			if (label) {
+				var $cell = $taskContainer.parents('td');
+				var rowId = $cell.attr('data-row-id');
+				var colId = $cell.attr('data-col-id');
 
-					var data = {
-						rowId: rowId,
-						colId: colId,
-						label: label,
-						insertAt: $taskContainer.prevAll().length
-					}
-					socket.emit('task:create', data);
-				} else {
-					$template.remove();
+				var data = {
+					rowId: rowId,
+					colId: colId,
+					label: label,
+					insertAt: $taskContainer.prevAll().length
 				}
-			}
-
-			$template.find('.btn-cancel').click(function() {
+				socket.emit('task:create', data);
+			} else {
 				$template.remove();
-			});
-			$template.find('.btn-save').click(function() {
-				$taskContainer = $(this).parents('.template-task-new');
-				save($taskContainer);
-			});
+			}
+		}
 
-			// Keyboard shortcuts
-		  	$template.keydown(function(event) {
-		  		// (CTRL or CMD) + Enter
-		  		if ((event.ctrlKey || event.metaKey) && event.which === 13) {
-		            save($(this));
-		            return false;
-		        }
-		        if (event.which === 27) { // Escape
-		            $template.remove();
-		        }
-		  	});
+		$template.find('.btn-cancel').click(function() {
+			$template.remove();
 		});
+		$template.find('.btn-save').click(function() {
+			$taskContainer = $(this).parents('.template-task-new');
+			save($taskContainer);
+		});
+
+		// Keyboard shortcuts
+	  	$template.keydown(function(event) {
+	  		// (CTRL or CMD) + Enter
+	  		if ((event.ctrlKey || event.metaKey) && event.which === 13) {
+	            save($(this));
+	            return false;
+	        }
+	        if (event.which === 27) { // Escape
+	            $template.remove();
+	        }
+	  	});
 	},
 
 	showTaskDetails: function() {
@@ -283,9 +270,11 @@ var zenBoard = {
 	/* MAIN NAV **************************************************************/
 
 	initMainNav: function() {
-		$('.btn-row-new').click(function() {
+		$('.nav-row-new').click(function() {
 			zenBoard.showNewRowDetails(true);
 		});
+
+		$('.nav-task-new').click(zenBoard.newTaskHandler);
 	},
 
 	/* ROW FORM **************************************************************/

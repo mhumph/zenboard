@@ -23,7 +23,7 @@ html {
 }
 
 .masthead {
-    width: 229px;
+    width: 299px; /* 229px if there is only have 1 button */;
 }
 .heading {
     background-color: black;
@@ -43,6 +43,7 @@ html {
     padding: 4px;
     font-size: 13px;
     cursor: pointer;
+    margin-left: 3px;
 }
 .nav-item:hover {
     background-color: #eee; /*rgba(221, 221, 221, 0.7)*/
