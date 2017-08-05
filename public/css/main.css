@@ -68,7 +68,7 @@ th {
 }
 .cell-0 {
     border: none;
-    width: 8%;
+    width: 12%;
 }
 .col {
     width: 22%;
@@ -248,20 +248,35 @@ textarea.form-textarea {
     margin-bottom: 15px;
 }
 
-/* ARCHIVE *******************************************************************/
+/* HISTORY *******************************************************************/
 
-.archived-tasks h3 {
+.section-heading {
     padding: 5px 7px 4px;
     background-color: #1D8348;
     color: white;
     font-weight: normal;
     width: 60px;
-    margin-bottom: 0px;
+    margin-top: 25px;
+    margin-bottom: 8px;
 }
 
-.archived-tasks-content {
-    padding: 5px 7px;
+th.history-col {
+    background-color: rgba(29, 131, 72, 0.6);
+    color: rgba(255, 255, 255, 0.6);
+
+    width: 22%;
+    font-weight: normal;
+}
+
+.trans-bg {
     background-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ARCHIVE *******************************************************************/
+
+.archived-tasks-content {
+    padding: 5px 0px; /*5px 7px;*/
+    /*background-color: rgba(255, 255, 255, 0.6);*/
     min-height: 20px; /* For when there are no archived tasks */
 }
 

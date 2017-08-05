@@ -17,8 +17,6 @@ app.use(express.static(__dirname + '/public'));
 var connection = mysql.createConnection(dbConfig);
 connection.connect();
 
-
-
 /** Enable CORS (to support other UIs) */
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -78,8 +76,8 @@ function sendArray(response, result, error) {
 
 function sendObject(response, result, error) {
   if (error) response.status(500).send(error);
-  var out = (result.length >= 1) ? result[0] : {};
-  response.send(out);
+  var resultToSend = (result.length >= 1) ? result[0] : {};
+  response.send(resultToSend);
 }
 
 /* SOCKET.IO *****************************************************************/
@@ -164,6 +162,9 @@ io.on('connection', function(socket) {
 
 /** Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList */
 function updateCell(arg, socket) {
+  // var MAX_ORDER = 1000000;
+  // var sqlArgs = [arg.rowId, arg.colId, (arg.originalData.my_order || MAX_ORDER), arg.id];
+
   var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND id != ?';
   var sqlArgs = [arg.rowId, arg.colId, arg.insertAt, arg.id];
   console.log('sqlArgs', sqlArgs);
