@@ -5,6 +5,7 @@ var io		  = require('socket.io')(http);
 var mysql	  = require('mysql');
 var dbConfig  = require('./config/db-config').getDbConfig();
 var uiConfig  = require('./config/ui-config').getAppConfig();
+var MAX_ORDER = 1000000;
 
 // Register '.mustache' extension with The Mustache Express
 app.engine('mustache', require('mustache-express')());
@@ -87,27 +88,37 @@ io.on('connection', function(socket) {
   socket.on('task:move', function(arg) {
   	console.log('task:move', arg);
 
-    var sql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
-    var sqlArgs = [arg.rowId, arg.colId, arg.insertAt, arg.id];
+    var selectSql = 'SELECT * FROM task WHERE id = ?';
+    connection.query(selectSql, arg.id, function (error, dataBeforeUpdate, fields) {
 
-  	connection.query(sql, sqlArgs, function (error, results, fields) {
-      console.log('task:move inner query returned', results);
+      if (error) {
+        emitAction(error, 'task:move', arg, socket);
+      } else {
 
-      if (!error) {
-        updateCell(arg, socket);
-        // Tell other clients to move the task too
-        socket.broadcast.emit('task:move:sync', arg);
+        console.log('dataBeforeUpdate', dataBeforeUpdate);
+        var updateSql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
+        var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.id];
+
+      	connection.query(updateSql, sqlArgs, function (error, results, fields) {
+          console.log('task:move inner query returned', results);
+
+          if (!error) {
+            updateCell(arg, socket, dataBeforeUpdate[0]);
+            // Tell other clients to move the task too
+            socket.broadcast.emit('task:move:sync', arg);
+          }
+          emitAction(error, 'task:move', arg, socket);
+        });
       }
-      emitAction(error, 'task:move', arg, socket);
-    });
 
+    });
   });
 
   socket.on('task:create', function(arg) {
     console.log('task:create', arg);
 
     var sql = 'INSERT INTO task (row_id, col_id, my_order, label) VALUES (?, ?, ?, ?)';
-    var sqlArgs = [arg.rowId, arg.colId, arg.insertAt, arg.label];
+    var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.label];
 
     connection.query(sql, sqlArgs, function (error, results, fields) {
       console.log('task:create inner query returned', results);
@@ -157,18 +168,22 @@ io.on('connection', function(socket) {
 });
 
 /** 
- * TODO. We should only increment my_order for items between new and 
- **/
+ * Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList 
+ * @param originalData MySql result (queried before updating the moved task)
+ */
+function updateCell(arg, socket, originalData) {
+  var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, (originalData.my_order || MAX_ORDER), arg.id];
 
-/** Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList */
-function updateCell(arg, socket) {
-  // var MAX_ORDER = 1000000;
-  // var sqlArgs = [arg.rowId, arg.colId, (arg.originalData.my_order || MAX_ORDER), arg.id];
+  // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
+  var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND my_order <= ? AND id != ?';
 
-  var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND id != ?';
-  var sqlArgs = [arg.rowId, arg.colId, arg.insertAt, arg.id];
-  console.log('sqlArgs', sqlArgs);
+  // Check if the task has been moved within a cell, and it's order has INcreased 
+  if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id) 
+      && (arg.myOrder > originalData.my_order)) {
+    sql = 'UPDATE task SET my_order = (my_order - 1) WHERE row_id = ? AND col_id = ? AND my_order <= ? AND my_order >= ? AND id != ?';
+  }
 
+  console.log(sql);
   connection.query(sql, sqlArgs, function (error, results, fields) {
     emitAction(error, 'cell:update', arg, socket);
   });
@@ -176,16 +191,15 @@ function updateCell(arg, socket) {
 
 /** Update order for rows lower down the list */
 function updateRowList(arg, socket) {
-  var MAX_ORDER = 1000000;
+  // REFACTOR: More robust to query original data from DB than to pass it from the UI
   var sqlArgs = [arg.myOrder, (arg.originalData.my_order || MAX_ORDER), arg.id];
 
   // Default SQL for when row's order is DEcreased
-  var sql = 'UPDATE row SET my_order = (my_order + 1) WHERE my_order >= ? and my_order <= ? AND id != ?';
+  var sql = 'UPDATE row SET my_order = (my_order + 1) WHERE my_order >= ? AND my_order <= ? AND id != ?';
   if (parseInt(arg.myOrder) > arg.originalData.my_order) {
     // For when row's order is INcreased
-    sql = 'UPDATE row SET my_order = (my_order - 1) WHERE my_order <= ? and my_order >= ? AND id != ?';
+    sql = 'UPDATE row SET my_order = (my_order - 1) WHERE my_order <= ? AND my_order >= ? AND id != ?';
   }
-  // TODO: Similar my_order logic for tasks
 
   console.log(sql, sqlArgs);
   connection.query(sql, sqlArgs, function (error, results, fields) {
@@ -229,98 +243,6 @@ http.listen(port, function() {
 
 /* USEFUL SNIPPETS ***********************************************************/
 
-    // // Get all tasks
-    // var sql = 'SELECT my_order FROM task WHERE row_id = ? and col_id = ?';
-    // connection.query(sql, [arg.rowId, arg.colId], function (error, results, fields) {
-    //   console.log('query1 returned', results);
-    //   if (error) {
-    //     socket.emit('error', {action: 'task:move', payload: arg});
-    //     console.log('query1 error', error);
-    //   } else {
-    //     var prevOrder = 0;
-    //     var newTaskOrder = 100;
-    //     for (var i = 0; i < results.length; i++) {
-    //       var task = results[i];
-    //       console.log(task);
-    //       if (i == (arg.insertAtIndex - 1)) {
-    //         prevOrder = task.my_order;
-    //         newTaskOrder = prevOrder + 100; // In case "moved task" is being moved to the end of the list
-    //       }
-    //       if (i == arg.insertAtIndex) {
-    //         if (task.my_order > (prevOrder + 1)) {
-    //           // There's room in between 
-    //           newTaskOrder = Math.floor((prevOrder + task.my_order) / 2);
-    //           moveTask(arg, newTaskOrder, socket);
-    //         } else {
-    //           console.log('TODO: recalc order', arg);
-    //         }
-    //       }
-    //     }
-    //   }
-    // });
-
-  // socket.on('task:move', function(arg) {
-  //   console.log('task:move', arg);
-
-  //   // Get all tasks
-  //   var sql = 'SELECT id FROM task WHERE row_id = ? and col_id = ?';
-  //   connection.query(sql, [arg.rowId, arg.colId], function (error, results, fields) {
-  //     console.log('query1 returned', results);
-      
-  //     if (error) {  
-  //       socket.emit('error', {action: 'task:move', payload: arg});
-  //       console.log('query1 error', error);
-
-  //     } else {        
-  //       var newTaskOrder = '';
-
-  //       for (var i = 0; i <= results.length; i++) {
-          
-  //         if (i == arg.insertAtIndex) {
-  //           break;
-  //         }
-
-  //         if (i < results.length) {
-  //           var task = results[i];
-  //           console.log(task);
-  //           newTaskOrder = newTaskOrder + task.id + '/';
-  //         }
-  //       }
-  //       // We need to call moveTask after the loop.
-  //       // It's possible that <code>i</code> will never <code>== arg.insertAtIndex</code>.
-  //       // For example, someone may have deleted a higher task in the list
-  //       // (in between sending and recieving the "move" message)
-  //       moveTask(arg, newTaskOrder, socket);
-  //     }
-  //   });
-
-  // });
-
-// function moveTask(arg, newTaskOrder, socket) {
-//   var sql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
-//   var sqlArgs = [arg.rowId, arg.colId, newTaskOrder, arg.id];
-//   console.log('sqlArgs', sqlArgs);
-//   connection.query(sql, sqlArgs, function (error, results, fields) {
-//     console.log('query2 returned', sqlArgs);
-//     if (error) {
-//       socket.emit('error', {action: 'task:move', payload: arg});
-//     } else {
-//       socket.emit('saved', {action: 'task:move', payload: arg});
-//     }
-//   });
-// }
-
-// /** Get all tasks for a row */
-// app.get('/rows/:rowId/tasks/', function(req, res) {
-//   var rowId = req.params.rowId;
-//   var qry = 'SELECT id, label, col_id, my_order FROM task WHERE row_id = ? ORDER BY col_id ASC, my_order ASC';
-//   connection.query(qry, [rowId], function (error, results, fields) {
-//     // if (error) res.status(500).send(error);
-//     // res.send(results);
-//     sendResponse(res, results, error);
-//   });
-// });
-
 // function runQuery(sql, func) {
 //  var out;
 //  var connection = mysql.createConnection({
@@ -338,50 +260,3 @@ http.listen(port, function() {
 //  return out;
 // }
 
-
-// function colIdToIndex(id) {
-//   switch (id) {
-//     case 'todo': return 0;
-//     case 'paus': return 1;
-//     case 'inpr': return 2;
-//     case 'done': return 3;
-//     default: 0;
-//   }
-// }
-
-// /** 
-//  * @return An array of rows. Each row contains an array of columns. Each of 
-//  * those contains an arrak of tasks. 
-//  */
-// app.get('/board', function(req, res) {
-//   // Get rows
-//   connection.query('SELECT id, label FROM row', function (error, rows, fields) {
-//     if (error) res.status(500).send(error);
-
-//     //var rowsWithCols = [];
-//     for (var i = 0; i < rows.length; i++) {
-//       var numRowsCompleted = 0;
-//       var row = rows[i];
-//       row.cols = [[], [], [], []];
-
-//       // Get row's tasks
-//       var qry = 'SELECT id, my_order, label, col_id FROM task WHERE row_id = ' + row.id + ' ORDER BY col_id, my_order ASC';
-//       console.log(qry);
-//       connection.query(qry, function (error, tasks, fields) {
-//         if (error) res.status(500).send(error);
-
-//         // Put each tasks in the relevant column
-//         for (var j = 0; j < tasks.length; j++) {
-//           var task = tasks[j];
-//           var colIndex = colIdToIndex(task['col_id']);
-//           row.cols[colIndex].push(task);
-//           //rowsWithCols.push(row);
-//           numRowsCompleted++;
-//         }
-//         if (numRowsCompleted >= rows.length) {
-//           sendResponse(res, rows, error);
-//         }
-//       });
-//     }
-//   });
-// });

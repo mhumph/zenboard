@@ -111,7 +111,7 @@ var zenBoard = {
 					rowId: rowId,
 					colId: colId,
 					label: label,
-					insertAt: $taskContainer.prevAll().length
+					myOrder: $taskContainer.prevAll().length + 1
 				}
 				socket.emit('task:create', data);
 			} else {
@@ -254,11 +254,10 @@ var zenBoard = {
 	    		var $cell = $(dropTargetEl);
 	    		var rowId = $cell.attr('data-row-id');
 	    		var colId = $cell.attr('data-col-id');
-	    		var insertAt = $task.prevAll().length;
+	    		var myOrder = $task.prevAll().length + 1;
 	    		var insertAfterId = $task.prev('.task').attr('data-id');
 
-	    		// REFACTOR: Rename insertAt to insertAtIndex
-	    		var data = {'id': id, 'rowId': rowId, 'colId': colId, 'insertAt': insertAt, 'ui_insertAfterId': insertAfterId};
+	    		var data = {'id': id, 'rowId': rowId, 'colId': colId, 'myOrder': myOrder, 'ui_insertAfterId': insertAfterId};
 	    		console.log('drop', data);
 		    	socket.emit('task:move', data);
 		    } else {
@@ -487,6 +486,7 @@ $(function() {
 		console.log('move:sync', data);
 		$task = $(".task[data-id=" + data.id + "]").remove();
 		if (data.ui_insertAfterId) {
+			// ?REFACTOR: might be better to use ".task:nth-of-type(" + data.myOrder + ")"
 			$prevTask = $(".task[data-id=" + data.ui_insertAfterId + "]");
 			$task.insertAfter($prevTask);	
 		} else {
