@@ -255,7 +255,7 @@ textarea.form-textarea {
     background-color: #1D8348;
     color: white;
     font-weight: normal;
-    width: 60px;
+    width: 120px; /* 60px for short headings */
     margin-top: 25px;
     margin-bottom: 8px;
 }
@@ -272,6 +272,10 @@ th.history-col {
     background-color: rgba(255, 255, 255, 0.6);
 }
 
+.task-archived {
+    background-color: rgba(213,245,227,0.8) !important;
+}
+
 /* ARCHIVE *******************************************************************/
 
 .archived-tasks-content {
@@ -281,7 +285,7 @@ th.history-col {
 }
 
 div.archived-task {
-    background-color: #D5F5E3;
+    background-color: rgba(213,245,227,0.8);/*#D5F5E3;*/
     padding: 4px;
     margin: 4px 2px;
     display: inline-block;

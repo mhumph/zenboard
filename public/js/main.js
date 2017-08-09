@@ -79,6 +79,7 @@ var zenBoard = {
 		return $("<div class='task'>").text(task.label)
 			.attr('data-id', task.id)
 			.attr('data-order', task.my_order)
+			.attr('title', 'id ' + task.id)
 			.click(zenBoard.showTaskDetails);
 	},
 
