@@ -3,7 +3,7 @@ var app     = express();
 var http    = require('http').Server(app);
 var io		  = require('socket.io')(http);
 var mysql	  = require('mysql');
-var dbConfig  = require('./config/db-config').getDbConfig();
+var dbConfig  = require('./config/react-db-config').getDbConfig();
 var uiConfig  = require('./config/ui-config').getAppConfig();
 var MAX_ORDER = 1000000;
 
@@ -52,8 +52,8 @@ app.get('/api/rows/:id', function(req, res) {
 });
 
 /** Get all (unarchived) tasks */
-app.get('/api/tasks/', function(req, res) {
-  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+app.get('/api/cards/', function(req, res) {
+  connection.query('SELECT id, label, row_id, col_id FROM card WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
     sendArray(res, results, error);
   });
 });
@@ -87,11 +87,62 @@ function sendObject(response, result, error) {
 
 /* SOCKET.IO *****************************************************************/
 
+// socket, action, arg, error
+function emitSimple(socket, action, arg, error) {
+  if (error) {
+    emitError(socket, action, arg, error);
+  } else {
+    socket.emit(action, arg);
+  }
+}
+
+function emitError(socket, action, arg, error) {
+  console.log(action, error);
+  socket.emit('app error', {
+    error: error,
+    action: action,
+    payload: arg
+  });
+}
+
+/** Converts column names to camelCase */
+function toCardList(records) {
+  let out = [];
+  records.forEach(function(record) {
+    out.push(toCard(record));
+  });
+  return out;
+}
+
+/** Converts column names to camelCase */
+function toCard(record) {
+  return {
+    id: record.id,
+    label: record.label,
+    rowId: record.row_id,
+    colId: record.col_id,
+    order: record.my_order,
+    description: record.description,
+    isArchived: record.is_archived
+  }
+}
+
+function emitCards(socket) {
+  var sql = 'SELECT id, label, row_id, col_id, my_order FROM card WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC';
+  connection.query(sql, function (error, results, fields) {
+    emitSimple(socket, 'cards', toCardList(results), error);
+  });
+}
+
 io.on('connection', function(socket) {
 
   /* V2 **********************************************************************/
 
-  socket.on('move card', function(arg) {
+  socket.on('init cards', function(arg) {
+    emitCards(socket);
+  });
+
+  socket.on('xxxmove card', function(arg) {
     // TODO: Persist
 
     var updatedCards = [
@@ -103,34 +154,33 @@ io.on('connection', function(socket) {
       // Row 2, col 3
       {id: 4, label: 'My task', rowId: 2, colId: 3, order: 1},
     ];
-    io.emit('update cards', updatedCards);
+    io.emit('cards', updatedCards);
   });
 
   /* END V2 ******************************************************************/
 
-  socket.on('task:move', function(arg) {
-  	console.log('task:move', arg);
+  socket.on('move card', function(arg) {
+  	console.log('move card', arg);
 
-    var selectSql = 'SELECT * FROM task WHERE id = ?';
+    var selectSql = 'SELECT * FROM card WHERE id = ?';
     connection.query(selectSql, arg.id, function (error, dataBeforeUpdate, fields) {
 
       if (error) {
-        emitAction(error, 'task:move', arg, socket);
+        emitError(socket, 'move card: init', arg, error);
       } else {
 
         console.log('dataBeforeUpdate', dataBeforeUpdate);
-        var updateSql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
-        var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.id];
+        var updateSql = 'UPDATE card SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
+        var sqlArgs = [arg.rowId, arg.colId, arg.order, arg.id];
 
       	connection.query(updateSql, sqlArgs, function (error, results, fields) {
-          console.log('task:move inner query returned', results);
+          console.log('"move card" inner query returned', results);
 
-          if (!error) {
+          if (error) {
+            emitError(socket, 'move card', arg, error);
+          } else {
             updateCell(arg, socket, dataBeforeUpdate[0]);
-            // Tell other clients to move the task too
-            socket.broadcast.emit('task:move:sync', arg);
           }
-          emitAction(error, 'task:move', arg, socket);
         });
       }
 
@@ -195,20 +245,25 @@ io.on('connection', function(socket) {
  * @param originalData MySql result (queried before updating the moved task)
  */
 function updateCell(arg, socket, originalData) {
+  console.log('entering updateCell');
   var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, (originalData.my_order || MAX_ORDER), arg.id];
 
-  // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
-  var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND my_order <= ? AND id != ?';
+  // Default SQL for when cards is added to a cell (or it's order is DEcreased within a cell)
+  var sql = 'UPDATE card SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND my_order <= ? AND id != ?';
 
-  // Check if the task has been moved within a cell, and it's order has INcreased 
+  // Check if the card has been moved within a cell, and it's order has INcreased 
   if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id) 
       && (arg.myOrder > originalData.my_order)) {
-    sql = 'UPDATE task SET my_order = (my_order - 1) WHERE row_id = ? AND col_id = ? AND my_order <= ? AND my_order >= ? AND id != ?';
+    sql = 'UPDATE card SET my_order = (my_order - 1) WHERE row_id = ? AND col_id = ? AND my_order <= ? AND my_order >= ? AND id != ?';
   }
 
   console.log(sql);
   connection.query(sql, sqlArgs, function (error, results, fields) {
-    emitAction(error, 'cell:update', arg, socket);
+    if (error) {
+      emitAction(socket, 'updateCell', arg, error);  
+    } else {
+      emitCards(socket);
+    }
   });
 }
 
@@ -238,7 +293,7 @@ function updateRowList(arg, socket) {
  * Also logs to console.  
  */
 function emitAction(error, action, arg, socket) {
-  var successStr = (error) ? 'error' : 'success';
+  var successStr = (error) ? 'app error' : 'success';
   var actionStr = action + ':' + successStr;
   console.log(actionStr);
   if (!error) {
@@ -262,24 +317,4 @@ var port = process.env.PORT || 3001;
 http.listen(port, function() {
   console.log('listening on *:' + port);
 });
-
-
-/* USEFUL SNIPPETS ***********************************************************/
-
-// function runQuery(sql, func) {
-//  var out;
-//  var connection = mysql.createConnection({
-//    host     : 'localhost',
-//    user     : 'root',
-//    password : 'knightsbridge',
-//    database : 'wikiboard'
-//  });
-//  connection.connect();
-//  connection.query('SELECT id, label, col1, col2, col3,col4 FROM row', function (error, results, fields) {
-//    if (error) throw error;
-//    out = results;
-//  });
-//  connection.end();
-//  return out;
-// }
 

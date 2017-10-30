@@ -30,6 +30,8 @@ Google recommendations
 - DONE: Remove underscore
 - DONE: Combine commercial scripts
 - DONE: API compression
+- DONE: Inline CSS
+- DONE: Remove custom CSS
 
 
 SEO
@@ -37,7 +39,7 @@ SEO
 - Sitemap xml IN PROGRESS
 
 - DONE: Football Rumours RSS
-- 
+- DONE: US widgets
 
 Commercial
 - BVP IN PROGRESS

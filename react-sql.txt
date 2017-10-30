@@ -1,0 +1,229 @@
+-- v0.0.1
+
+DROP TABLE `zenboard`.`row`;
+
+DROP TABLE `zenboard`.`card`;
+
+
+CREATE SCHEMA `zenboard` DEFAULT CHARACTER SET utf8 ;
+
+CREATE USER 'zenadmin'@'localhost' IDENTIFIED BY 'snowflake';
+
+GRANT ALL ON zenboard.* TO 'zenadmin'@'localhost';
+
+
+CREATE TABLE `row` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `label` varchar(255) NOT NULL,
+  `my_order` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+insert into row (my_order, label) values (1, 'Google recommendations');
+
+insert into row (my_order, label) values (2, 'SEO');
+
+insert into row (my_order, label) values (3, 'Commercial');
+    
+insert into row (my_order, label) values (4, 'Maintenance');
+
+insert into row (my_order, label) values (5, 'More maintenance');
+
+insert into row (my_order, label) values (6, 'New features');
+
+insert into row (my_order, label) values (7, 'Video');
+
+insert into row (my_order, label) values (8, 'Big ideas');
+
+insert into row (my_order, label) values (9, 'Hmmm');
+
+
+CREATE TABLE `zenboard`.`card` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `label` VARCHAR(512) NOT NULL,
+  `row_id` INT NULL,
+  `col_id` INT NULL,
+  `my_order` INT NOT NULL,
+  `description` LONGTEXT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Ads JS: remove depedencies @s', (SELECT id FROM row WHERE label = 'Google recommendations'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'News feed: lazy load images?', (SELECT id FROM row WHERE label = 'Google recommendations'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'JS optimisation @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 3);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'Remote login @m @a', (SELECT id FROM row WHERE label = 'Google recommendations'), 3); 
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Polls fix @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'Remove underscore @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'Combine commercial scripts @s', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
+
+insert into card(my_order, label, row_id, col_id) values (
+  4, 'Inline CSS @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
+
+insert into card(my_order, label, row_id, col_id) values (
+  5, 'Remove custom CSS @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
+
+insert into card(my_order, label, row_id, col_id) values (
+  6, 'API compression @h', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Google Live, blocked on Google', (SELECT id FROM row WHERE label = 'SEO'), 2);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Sitemap xml @a', (SELECT id FROM row WHERE label = 'SEO'), 3);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'RSS for Football Rumours, Trending, etc @a @m', (SELECT id FROM row WHERE label = 'SEO'), 4);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Branded video player @s', (SELECT id FROM row WHERE label = 'Commercial'), 3);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Geo-targetting, blocked on VIP', (SELECT id FROM row WHERE label = 'Commercial'), 2);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Revert SMS button #social', (SELECT id FROM row WHERE label = 'Maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'Images: media type', (SELECT id FROM row WHERE label = 'Maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'Stop people deleting posts', (SELECT id FROM row WHERE label = 'Maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  4, 'Automated tests #dev', (SELECT id FROM row WHERE label = 'Maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Slow media library, blocked on VIP #images', (SELECT id FROM row WHERE label = 'Maintenance'), 2);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Test environments @h @all ', (SELECT id FROM row WHERE label = 'Maintenance'), 3);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'Automated email reports @a', (SELECT id FROM row WHERE label = 'Maintenance'), 3);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'FB link ownership #social @mh', (SELECT id FROM row WHERE label = 'Maintenance'), 3);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Photoswipe fix @mi', (SELECT id FROM row WHERE label = 'Maintenance'), 4);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'RSS titles #seo', (SELECT id FROM row WHERE label = 'More maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'Sitemap is slow #seo', (SELECT id FROM row WHERE label = 'More maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'Load RTA2 later #pagespeed', (SELECT id FROM row WHERE label = 'More maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  4, 'Soaps image names', (SELECT id FROM row WHERE label = 'More maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  5, 'IE11 layout bug', (SELECT id FROM row WHERE label = 'More maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  6, 'Merge two author accounts', (SELECT id FROM row WHERE label = 'More maintenance'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'CHP metadata #images', (SELECT id FROM row WHERE label = 'More maintenance'), 2);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'HUD analytics, blocked on RTA', (SELECT id FROM row WHERE label = 'More maintenance'), 2);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Galleries #images @g', (SELECT id FROM row WHERE label = 'New features'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'New homepage section', (SELECT id FROM row WHERE label = 'New features'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'Thumbnail strip by tag', (SELECT id FROM row WHERE label = 'New features'), 1);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Android/FBIA bugs', (SELECT id FROM row WHERE label = 'Video'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'WP Admin: video search', (SELECT id FROM row WHERE label = 'Video'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'Dodgy chars', (SELECT id FROM row WHERE label = 'Video'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  4, 'Video lists: exclude videos?', (SELECT id FROM row WHERE label = 'Video'), 1);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Hyper-AMP', (SELECT id FROM row WHERE label = 'Big ideas'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'U.S. homepage', (SELECT id FROM row WHERE label = 'Big ideas'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  3, 'Personalised newsletters', (SELECT id FROM row WHERE label = 'Big ideas'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  4, 'Personalisation', (SELECT id FROM row WHERE label = 'Big ideas'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  5, 'Alexa', (SELECT id FROM row WHERE label = 'Big ideas'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  6, 'Aggregation', (SELECT id FROM row WHERE label = 'Big ideas'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'Realtime messaging, blocked on legal', (SELECT id FROM row WHERE label = 'Big ideas'), 2);
+
+
+insert into card(my_order, label, row_id, col_id) values (
+  1, 'AB headlines bug', (SELECT id FROM row WHERE label = 'Hmmm'), 1);
+
+insert into card(my_order, label, row_id, col_id) values (
+  2, 'Twitter headline field #social', (SELECT id FROM row WHERE label = 'Hmmm'), 1);
+
+
+
+-- APPENDIX
+
+-- What if we just store tasks ids as a list e.g. row.tasks = '1,2,3' ?
+-- UI could pass task:move {rowId:1, colId:1, taskId:1, insertAfterTaskId:2}
+-- BAD: task id=2 is deleted in between send/recieve then order could get messed up
+
+-- What if tasks have a simple index e.g. task.my_order = 3 (for the 4rd task in the list)
+-- UI wouldn't change (insertAt)
+-- GOOD: Simple db update e.g. update any tasks with a higher my_order (add 1) 
+-- GOOD: Any discrepancies will be minor (typically out by 1, as opposed to jumping to the start/end of the list)
+
+
+-- v0.0.2
+
+ALTER TABLE `zenboard`.`card` 
+ADD COLUMN `is_archived` TINYINT(1) NOT NULL DEFAULT 0 AFTER `description`;
+
+-- v0.0.3
+
+ALTER TABLE `zenboard`.`row` 
+ADD COLUMN `info` VARCHAR(512) NULL AFTER `my_order`;
+
