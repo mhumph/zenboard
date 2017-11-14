@@ -3,6 +3,7 @@ var app     = express();
 var http    = require('http').Server(app);
 var io		  = require('socket.io')(http);
 var mysql	  = require('mysql');
+var bodyParser  = require('body-parser')
 var dbConfig  = require('./config/db-config').getDbConfig();
 var uiConfig  = require('./config/ui-config').getAppConfig();
 var MAX_ORDER = 1000000;
@@ -24,6 +25,8 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+//app.use(bodyParser.urlencoded({extended: false}));
+var jsonParser = bodyParser.json();
 
 /* UI ************************************************************************/
 
@@ -44,8 +47,74 @@ app.get('/api/rows/', function(req, res) {
   });
 });
 
+/** Get all rows, cells and cards */
+app.get('/api/rows/deep', function(req, response) {
+  fetchRowsDeep(response);
+});
+
+function fetchRowsDeep(response) {
+  connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
+    if (error) response.status(500).send(error);
+    fetchCardsForRows(response, results, function(rows) {
+      response.send(rows);
+    });
+  });
+}
+
+function fetchCardsForRows(response, rawRows, callback) {
+  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+    if (error) response.status(500).send(error);
+    var rows = initRows(rawRows);
+    mergeCardsIntoRows(rows, results);
+    callback(rows);
+  });
+}
+
+function initRows(rawRows) {
+  var out = [];
+  for (var i = 0; i < rawRows.length; i++) {
+    var rawRow = rawRows[i];
+    var thisRow = {
+      id: rawRow.id,
+      label: rawRow.label,
+      position: rawRow.my_order,
+      cells: new Array(4)
+    }
+    // Init cells
+    for (var j = 0; j < thisRow.cells.length; j++) {
+      thisRow.cells[j] = {
+        colId: j + 1,
+        cards: []
+      };
+    };
+    out.push(thisRow);
+    console.log('row', thisRow);
+  }
+  return out;
+}
+
+function mergeCardsIntoRows(rows, cards) {
+  console.log('rows.length', rows.length);
+  for (var i = 0; i < cards.length; i++) {
+    var card = cards[i];
+    var rowId = card.row_id;
+    var row = rows.find( function(el) {return (el.id == rowId)} );
+    if (row) {
+      var colId = card.col_id;
+      var rowCell = row.cells[colId - 1];
+      delete card.row_id;
+      delete card.col_id;
+
+      rowCell.cards.push(card);
+      row.cells[colId - 1] = rowCell;
+    } else {
+      console.log('Row not found with id ' + rowId);
+    }
+  }
+}
+
 /** Get row by id */
-app.get('/api/rows/:id', function(req, res) {
+app.get('/api/rows/:id', function(req, response) {
   connection.query('SELECT id, label, my_order, info FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
     sendObject(res, results, error);
   });
@@ -58,12 +127,33 @@ app.get('/api/tasks/', function(req, res) {
   });
 });
 
-/** Get task by id */
+/** Get card by id */
 app.get('/api/tasks/:id', function(req, res) {
   connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
     sendObject(res, results, error);
   });
 });
+app.get('/api/cards/:id', function(req, response) {
+  connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
+    if (error) response.status(500).send(error);
+    var card = initCard(results)
+    response.send(card);
+  });
+});
+function initCard(results) {
+  if (results.length < 1) return false;
+  var data = results[0];
+  var card = {
+    id: data.id,
+    label: data.label,
+    rowId: data.row_id,
+    colId: data.col_id,
+    position: data.my_order,
+    description: data.description,
+    isArchived: Boolean(data.is_archived)
+  }
+  return card;
+}
 
 /** Get archived tasks. TODO: Order by archive date (instead of created date). */
 app.get('/api/archive/tasks/', function(req, res) {
@@ -71,6 +161,38 @@ app.get('/api/archive/tasks/', function(req, res) {
     sendArray(res, results, error);
   });
 });
+
+// app.get('/api/cards/test', jsonParser, function(req, res) {
+//   var body = req.body;
+//   console.log('About to save card', body);
+//   response.sendStatus(200);
+// })
+
+/** Save card */
+app.post('/api/cards/save', jsonParser, function(req, response) {
+  var body = req.body;
+  console.log('About to save card', body);
+
+  var sql = 'UPDATE task SET label = ?, description = ?, is_archived = ? WHERE id = ?';
+  var sqlArgs = [body.label, body.description, body.isArchived, body.id];
+  connection.query(sql, sqlArgs, function (error, results, fields) {
+    //sendStatus(error, response);
+    // TODO: emit new data (to update card label on boards)
+    if (error) {
+      response.status(500).send(error);
+    } else {
+      fetchRowsDeep(response);
+    }
+  });
+});
+
+function sendStatus(error, response) {
+  if (error) {
+    response.status(500).send(error);
+  } else {
+    response.sendStatus(200);
+  }
+}
 
 /* API HELPERS ***************************************************************/
 
@@ -145,7 +267,7 @@ io.on('connection', function(socket) {
 
     connection.query(sql, sqlArgs, function (error, results, fields) {
       console.log('task:create inner query returned', results);
-      
+
       if (!error) {
         arg.id = results.insertId;
         updateCell(arg, socket);
@@ -190,8 +312,8 @@ io.on('connection', function(socket) {
 
 });
 
-/** 
- * Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList 
+/**
+ * Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList
  * @param originalData MySql result (queried before updating the moved task)
  */
 function updateCell(arg, socket, originalData) {
@@ -200,8 +322,8 @@ function updateCell(arg, socket, originalData) {
   // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
   var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND my_order <= ? AND id != ?';
 
-  // Check if the task has been moved within a cell, and it's order has INcreased 
-  if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id) 
+  // Check if the task has been moved within a cell, and it's order has INcreased
+  if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id)
       && (arg.myOrder > originalData.my_order)) {
     sql = 'UPDATE task SET my_order = (my_order - 1) WHERE row_id = ? AND col_id = ? AND my_order <= ? AND my_order >= ? AND id != ?';
   }
@@ -234,8 +356,8 @@ function updateRowList(arg, socket) {
 
 /**
  * An action is a user initiated event.
- * Sends to io (if successful) otherwise to the initiating socket. 
- * Also logs to console.  
+ * Sends to io (if successful) otherwise to the initiating socket.
+ * Also logs to console.
  */
 function emitAction(error, action, arg, socket) {
   var successStr = (error) ? 'error' : 'success';
@@ -282,4 +404,3 @@ http.listen(port, function() {
 //  connection.end();
 //  return out;
 // }
-

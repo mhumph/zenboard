@@ -40,12 +40,12 @@ var zenBoard = {
 		var cell3 = zenBoard.initCell(row, 2);
 		var cell4 = zenBoard.initCell(row, 3);
 		var cell5 = zenBoard.initCell(row, 4);
-		
+
 		tr.append(cell1).append(cell2).append(cell3).append(cell4).append(cell5);
 		tr.hover(
 			function() {$(this).find('.row-buttons').show();},
 			function() {$(this).find('.row-buttons').hide();}
-		); 
+		);
 		return tr;
 	},
 
@@ -210,7 +210,7 @@ var zenBoard = {
 	saveTask: function(taskId, label, description, isArchived, originalData) {
 		console.log('saveTask', taskId);
 		socket.emit('task:save', {
-			'id': taskId, 'label': label, 'description': description, 'isArchived': isArchived, 
+			'id': taskId, 'label': label, 'description': description, 'isArchived': isArchived,
 			'originalData': originalData, 'timestamp': new Date().getTime()
 		});
 	},
@@ -379,7 +379,7 @@ var zenBoard = {
 	saveRow: function(rowId, label, myOrder, info, originalData) {
 		console.log('saveRow', rowId);
 		socket.emit('row:save', {
-			'id': rowId, 'label': label, 'myOrder': myOrder, 
+			'id': rowId, 'label': label, 'myOrder': myOrder,
 			'info': info, 'originalData': originalData
 		});
 	},
@@ -489,7 +489,7 @@ $(function() {
 		if (data.ui_insertAfterId) {
 			// ?REFACTOR: might be better to use ".task:nth-of-type(" + data.myOrder + ")"
 			$prevTask = $(".task[data-id=" + data.ui_insertAfterId + "]");
-			$task.insertAfter($prevTask);	
+			$task.insertAfter($prevTask);
 		} else {
 			$cell = $('#row' + data.rowId + 'col' + data.colId);
 			$task.prependTo($cell);
@@ -513,5 +513,5 @@ $(function() {
 	socket.on('cell:update:error', function(data) {
 		zenBoard.handleError("Sorry, there was an error updating the order of the tasks", 'cell:update:error', data);
 	});
-	
+
 });
