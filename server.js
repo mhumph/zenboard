@@ -49,24 +49,43 @@ app.get('/api/rows/', function(req, res) {
 
 /** Get all rows, cells and cards */
 app.get('/api/rows/deep', function(req, response) {
-  fetchRowsDeep(response);
+  // TODO: Handle "no rows" scenario
+  fetchRowsDeep().then(function(rows) {
+    response.send(rows);
+  }, function(error) {
+    response.status(500).send(error);
+  });
 });
 
-function fetchRowsDeep(response) {
-  connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
-    if (error) response.status(500).send(error);
-    fetchCardsForRows(response, results, function(rows) {
-      response.send(rows);
+function fetchRowsDeep() {
+  return new Promise(function(resolve, reject) {
+    connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
+      if (error) {
+        reject(error);
+      } else {
+        fetchCardsForRows(results).then(function(rows) {
+          resolve(rows);
+        }, rejector);
+      }
     });
   });
 }
 
-function fetchCardsForRows(response, rawRows, callback) {
-  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
-    if (error) response.status(500).send(error);
-    var rows = initRows(rawRows);
-    mergeCardsIntoRows(rows, results);
-    callback(rows);
+function rejector(error) {
+  reject(error);
+}
+
+function fetchCardsForRows(rawRows) {
+  return new Promise(function(resolve, reject) {
+    connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+      if (error) {
+        reject(error);
+      } else {
+        var rows = initRows(rawRows);
+        mergeCardsIntoRows(rows, results);
+        resolve(rows);
+      }
+    });
   });
 }
 
@@ -181,18 +200,25 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
     if (error) {
       response.status(500).send(error);
     } else {
-      fetchRowsDeep(response);
+      fetchRowsDeep().then(function(rows) {
+        response.sendStatus(200);
+        console.log("About to emit boardRefresh");
+        io.emit('boardRefresh', rows);
+      }, function(error) {
+        console.log("Error in fetchRowsDeep", error);
+        response.status(500).send(error);
+      });
     }
   });
 });
 
-function sendStatus(error, response) {
-  if (error) {
-    response.status(500).send(error);
-  } else {
-    response.sendStatus(200);
-  }
-}
+// function sendStatus(error, response) {
+//   if (error) {
+//     response.status(500).send(error);
+//   } else {
+//     response.sendStatus(200);
+//   }
+// }
 
 /* API HELPERS ***************************************************************/
 
