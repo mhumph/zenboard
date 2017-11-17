@@ -65,9 +65,13 @@ app.get('/react', function (req, res) {
 
 /** Get all rows */
 app.get('/api/rows/', function(req, res) {
+  console.log('Entering /api/rows/');
   connectThenQuery('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
+    console.log("Got results");
     sendArray(res, results, error);
+    console.log("Send results")
   });
+  console.log('Existing /api/rows/');
 });
 
 /** Get all rows, cells and cards */
@@ -258,14 +262,20 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
 /* API HELPERS ***************************************************************/
 
 function sendArray(response, result, error) {
-  if (error) response.status(500).send(error);
-  response.send(result);
+  if (error) {
+    response.status(500).send(error);
+  } else {
+    response.send(result);
+  }
 }
 
 function sendObject(response, result, error) {
-  if (error) response.status(500).send(error);
-  var resultToSend = (result.length >= 1) ? result[0] : {};
-  response.send(resultToSend);
+  if (error) {
+    response.status(500).send(error);
+  } else {
+    var resultToSend = (result.length >= 1) ? result[0] : {};
+    response.send(resultToSend);
+  }
 }
 
 /* SOCKET.IO *****************************************************************/
