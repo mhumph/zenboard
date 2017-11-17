@@ -42,13 +42,12 @@ function connect(callback) {
 
 function connectThenQuery(sql, arg1, arg2) {
   var conn = createConn();
-  conn.connect(function(err) {
-    if (err) {
-      callback(err);
-    } else {
-      conn.query(sql, arg1, arg2);
-    }
-  });
+  if (typeof arg2 === 'undefined') {
+    conn.query(sql, arg1);
+  } else {
+    conn.query(sql, arg1, arg2);
+  }
+  conn.end(); // Will end after query has ended
 }
 
 /* UI ************************************************************************/
@@ -67,7 +66,7 @@ app.get('/react', function (req, res) {
 app.get('/api/rows/', function(req, res) {
   console.log("Entering /rows/");
   connectThenQuery('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
-    console.log("Got /rows/");
+    console.log("Got /rows/", results);
     sendArray(res, results, error);
     console.log("Sent /rows/")
   });
