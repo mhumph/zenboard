@@ -181,12 +181,6 @@ app.get('/api/archive/tasks/', function(req, res) {
   });
 });
 
-// app.get('/api/cards/test', jsonParser, function(req, res) {
-//   var body = req.body;
-//   console.log('About to save card', body);
-//   response.sendStatus(200);
-// })
-
 /** Save card */
 app.post('/api/cards/save', jsonParser, function(req, response) {
   var body = req.body;
@@ -211,6 +205,24 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
     }
   });
 });
+
+// app.post('/api/cards/create', jsonParser, function(req, response) {
+//   var body = req.body;
+//   console.log('About to create card', body);
+//
+//   var sql = 'INSERT INTO task (row_id, col_id, my_order, label) VALUES (?, ?, ?, ?)';
+//   var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.label];
+//
+//   connection.query(sql, sqlArgs, function (error, results, fields) {
+//     console.log('task:create inner query returned', results);
+//
+//     if (!error) {
+//       arg.id = results.insertId;
+//       updateCell(arg, socket);
+//     }
+//     emitAction(error, 'task:create', arg, socket);
+//   });
+// })
 
 // function sendStatus(error, response) {
 //   if (error) {
@@ -343,7 +355,15 @@ io.on('connection', function(socket) {
  * @param originalData MySql result (queried before updating the moved task)
  */
 function updateCell(arg, socket, originalData) {
-  var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, (originalData.my_order || MAX_ORDER), arg.id];
+  // If no originalData provided then assume it's a new card
+  if (!originalData) {
+    originalData = {
+      my_order: MAX_ORDER,
+      row_id: arg.rowId,
+      col_id: arg.colId
+    }
+  }
+  var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, originalData.my_order, arg.id];
 
   // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
   var sql = 'UPDATE task SET my_order = (my_order + 1) WHERE row_id = ? AND col_id = ? AND my_order >= ? AND my_order <= ? AND id != ?';
@@ -357,6 +377,13 @@ function updateCell(arg, socket, originalData) {
   console.log(sql);
   connection.query(sql, sqlArgs, function (error, results, fields) {
     emitAction(error, 'cell:update', arg, socket);
+
+    fetchRowsDeep().then(function(rows) {
+      console.log("About to emit boardRefresh");
+      io.emit('boardRefresh', rows);
+    }, function(error) {
+      console.log("Error in fetchRowsDeep", error);
+    });
   });
 }
 

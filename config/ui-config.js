@@ -1,6 +1,6 @@
 exports.getAppConfig = function() {
 	return {
-		heading: "Metro Dev",
-		pageTitle: "Board: Metro Dev"
+		heading: "Acme Dev Team",
+		pageTitle: "Board: Acme Dev"
 	};
 }

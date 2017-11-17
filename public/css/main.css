@@ -14,7 +14,7 @@ html {
 
 html {
 	font-family: 'HelveticaNeue-Light', 'Helvetica Neue', sans-serif;
-	background: url(../img/photo-1499162526249-f5b8b9ba9923) no-repeat center center fixed; 
+	background: url(../img/photo-1499162526249-f5b8b9ba9923) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -23,7 +23,7 @@ html {
 }
 
 .masthead {
-    width: 299px; /* 229px if there is only have 1 button */;
+    width: 375px; /* 229px if there is only have 1 button */;
 }
 .heading {
     background-color: black;
@@ -82,13 +82,16 @@ th {
 }
 .row-label {
     cursor: pointer;
+
+    font-weight: normal;
+    font-family: 'Helvetica Neue', sans-serif;
 }
 div.task {
     background-color: #D5F5E3;
     padding: 4px;
     margin-top: 3px;
     margin-bottom: 6px;
-    /* "Pointer" icon is relevant to click (for details) and move. 
+    /* "Pointer" icon is relevant to click (for details) and move.
      * "Move" icon is only relevant to move. */
     cursor: pointer;
 }
@@ -97,7 +100,7 @@ div.task:hover {
     padding: 4px;
     margin-top: 3px;
     margin-bottom: 6px;
-    /* "Pointer" icon is relevant to click (for details) and move. 
+    /* "Pointer" icon is relevant to click (for details) and move.
      * "Move" icon is only relevant to move. */
     cursor: pointer;
 }
@@ -241,7 +244,7 @@ textarea.form-textarea {
     background-color: #eee;
 }
 .modal-cancel {
-    float: left;   
+    float: left;
 }
 
 .trc-position {
