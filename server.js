@@ -15,8 +15,7 @@ app.set('view engine', 'ejs');//'mustache');
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
 
-// TODO: Pooling + transactions
-var connection = mysql.createConnection(dbConfig);
+var connection = createConn();
 connection.connect();
 
 /** Enable CORS (to support other UIs) */
@@ -27,6 +26,20 @@ app.use(function(req, res, next) {
 });
 //app.use(bodyParser.urlencoded({extended: false}));
 var jsonParser = bodyParser.json();
+
+/* TODO: Pooling + transactions */
+function createConn() {
+  var connection = mysql.createConnection(dbConfig);
+  return connection;
+}
+
+function connect(callback) {
+  var conn = createConn();
+  conn.connect(function(err) {
+    if (err) throw err;
+    callback(conn);
+  });
+}
 
 /* UI ************************************************************************/
 
@@ -42,9 +55,11 @@ app.get('/react', function (req, res) {
 
 /** Get all rows */
 app.get('/api/rows/', function(req, res) {
-  connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
-    sendArray(res, results, error);
-  });
+  connect(function(connection) {
+    connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
+      sendArray(res, results, error);
+    });
+  })
 });
 
 /** Get all rows, cells and cards */
@@ -59,14 +74,16 @@ app.get('/api/rows/deep', function(req, response) {
 
 function fetchRowsDeep() {
   return new Promise(function(resolve, reject) {
-    connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
-      if (error) {
-        reject(error);
-      } else {
-        fetchCardsForRows(results).then(function(rows) {
-          resolve(rows);
-        }, rejector);
-      }
+    connect(function(connection) {
+      connection.query('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
+        if (error) {
+          reject(error);
+        } else {
+          fetchCardsForRows(results).then(function(rows) {
+            resolve(rows);
+          }, rejector);
+        }
+      });
     });
   });
 }
@@ -77,14 +94,16 @@ function rejector(error) {
 
 function fetchCardsForRows(rawRows) {
   return new Promise(function(resolve, reject) {
-    connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
-      if (error) {
-        reject(error);
-      } else {
-        var rows = initRows(rawRows);
-        mergeCardsIntoRows(rows, results);
-        resolve(rows);
-      }
+    connect(function(connection) {
+      connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+        if (error) {
+          reject(error);
+        } else {
+          var rows = initRows(rawRows);
+          mergeCardsIntoRows(rows, results);
+          resolve(rows);
+        }
+      });
     });
   });
 }
@@ -134,29 +153,37 @@ function mergeCardsIntoRows(rows, cards) {
 
 /** Get row by id */
 app.get('/api/rows/:id', function(req, response) {
-  connection.query('SELECT id, label, my_order, info FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
-    sendObject(res, results, error);
+  connect(function(connection) {
+    connection.query('SELECT id, label, my_order, info FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
+      sendObject(res, results, error);
+    });
   });
 });
 
 /** Get all (unarchived) tasks */
 app.get('/api/tasks/', function(req, res) {
-  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
-    sendArray(res, results, error);
+  connect(function(connection) {
+    connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+      sendArray(res, results, error);
+    });
   });
 });
 
 /** Get card by id */
 app.get('/api/tasks/:id', function(req, res) {
-  connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
-    sendObject(res, results, error);
-  });
+  connect(function(connection) {
+    connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
+      sendObject(res, results, error);
+    });
+  })
 });
 app.get('/api/cards/:id', function(req, response) {
-  connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
-    if (error) response.status(500).send(error);
-    var card = initCard(results)
-    response.send(card);
+  connect(function(connection) {
+    connection.query('SELECT * FROM task WHERE id = ?', [req.params.id], function (error, results, fields) {
+      if (error) response.status(500).send(error);
+      var card = initCard(results)
+      response.send(card);
+    });
   });
 });
 function initCard(results) {
@@ -176,8 +203,10 @@ function initCard(results) {
 
 /** Get archived tasks. TODO: Order by archive date (instead of created date). */
 app.get('/api/archive/tasks/', function(req, res) {
-  connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
-    sendArray(res, results, error);
+  connect(function(connection) {
+    connection.query('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
+      sendArray(res, results, error);
+    });
   });
 });
 
@@ -188,21 +217,23 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
 
   var sql = 'UPDATE task SET label = ?, description = ?, is_archived = ? WHERE id = ?';
   var sqlArgs = [body.label, body.description, body.isArchived, body.id];
-  connection.query(sql, sqlArgs, function (error, results, fields) {
-    //sendStatus(error, response);
-    // TODO: emit new data (to update card label on boards)
-    if (error) {
-      response.status(500).send(error);
-    } else {
-      fetchRowsDeep().then(function(rows) {
-        response.sendStatus(200);
-        console.log("About to emit boardRefresh");
-        io.emit('boardRefresh', rows);
-      }, function(error) {
-        console.log("Error in fetchRowsDeep", error);
+  connect(function(connection) {
+    connection.query(sql, sqlArgs, function (error, results, fields) {
+      //sendStatus(error, response);
+      // TODO: emit new data (to update card label on boards)
+      if (error) {
         response.status(500).send(error);
-      });
-    }
+      } else {
+        fetchRowsDeep().then(function(rows) {
+          response.sendStatus(200);
+          console.log("About to emit boardRefresh");
+          io.emit('boardRefresh', rows);
+        }, function(error) {
+          console.log("Error in fetchRowsDeep", error);
+          response.status(500).send(error);
+        });
+      }
+    });
   });
 });
 
@@ -272,28 +303,30 @@ io.on('connection', function(socket) {
   	console.log('task:move', arg);
 
     var selectSql = 'SELECT * FROM task WHERE id = ?';
-    connection.query(selectSql, arg.id, function (error, dataBeforeUpdate, fields) {
+    connect(function(connection) {
+      connection.query(selectSql, arg.id, function (error, dataBeforeUpdate, fields) {
 
-      if (error) {
-        emitAction(error, 'task:move', arg, socket);
-      } else {
-
-        console.log('dataBeforeUpdate', dataBeforeUpdate);
-        var updateSql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
-        var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.id];
-
-      	connection.query(updateSql, sqlArgs, function (error, results, fields) {
-          console.log('task:move inner query returned', results);
-
-          if (!error) {
-            updateCell(arg, socket, dataBeforeUpdate[0]);
-            // Tell other clients to move the task too
-            socket.broadcast.emit('task:move:sync', arg);
-          }
+        if (error) {
           emitAction(error, 'task:move', arg, socket);
-        });
-      }
+        } else {
 
+          console.log('dataBeforeUpdate', dataBeforeUpdate);
+          var updateSql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
+          var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.id];
+
+        	connection.query(updateSql, sqlArgs, function (error, results, fields) {
+            console.log('task:move inner query returned', results);
+
+            if (!error) {
+              updateCell(arg, socket, dataBeforeUpdate[0]);
+              // Tell other clients to move the task too
+              socket.broadcast.emit('task:move:sync', arg);
+            }
+            emitAction(error, 'task:move', arg, socket);
+          });
+        }
+
+      });
     });
   });
 
@@ -303,14 +336,16 @@ io.on('connection', function(socket) {
     var sql = 'INSERT INTO task (row_id, col_id, my_order, label) VALUES (?, ?, ?, ?)';
     var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.label];
 
-    connection.query(sql, sqlArgs, function (error, results, fields) {
-      console.log('task:create inner query returned', results);
+    connect(function(connection) {
+      connection.query(sql, sqlArgs, function (error, results, fields) {
+        console.log('task:create inner query returned', results);
 
-      if (!error) {
-        arg.id = results.insertId;
-        updateCell(arg, socket);
-      }
-      emitAction(error, 'task:create', arg, socket);
+        if (!error) {
+          arg.id = results.insertId;
+          updateCell(arg, socket);
+        }
+        emitAction(error, 'task:create', arg, socket);
+      });
     });
   });
 
@@ -319,9 +354,11 @@ io.on('connection', function(socket) {
 
     var sql = 'UPDATE task SET label = ?, description = ?, is_archived = ? WHERE id = ?';
     var sqlArgs = [arg.label, arg.description, arg.isArchived, arg.id];
-    connection.query(sql, sqlArgs, function (error, results, fields) {
-      // TODO: If it's archived then set my_order to... null? large int?
-      emitAction(error, 'task:save', arg, socket);
+    connect(function(connection) {
+      connection.query(sql, sqlArgs, function (error, results, fields) {
+        // TODO: If it's archived then set my_order to... null? large int?
+        emitAction(error, 'task:save', arg, socket);
+      });
     });
   });
 
@@ -337,14 +374,16 @@ io.on('connection', function(socket) {
     }
     console.log(sql);
 
-    connection.query(sql, sqlArgs, function (error, results, fields) {
-      if (!error) {
-        if (results && results.insertId) {
-          arg.id = results.insertId;
+    connect(function(connection) {
+      connection.query(sql, sqlArgs, function (error, results, fields) {
+        if (!error) {
+          if (results && results.insertId) {
+            arg.id = results.insertId;
+          }
+          updateRowList(arg, socket);
         }
-        updateRowList(arg, socket);
-      }
-      emitAction(error, 'row:save', arg, socket);
+        emitAction(error, 'row:save', arg, socket);
+      });
     });
   });
 
@@ -375,14 +414,16 @@ function updateCell(arg, socket, originalData) {
   }
 
   console.log(sql);
-  connection.query(sql, sqlArgs, function (error, results, fields) {
-    emitAction(error, 'cell:update', arg, socket);
+  connect(function(connection) {
+    connection.query(sql, sqlArgs, function (error, results, fields) {
+      emitAction(error, 'cell:update', arg, socket);
 
-    fetchRowsDeep().then(function(rows) {
-      console.log("About to emit boardRefresh");
-      io.emit('boardRefresh', rows);
-    }, function(error) {
-      console.log("Error in fetchRowsDeep", error);
+      fetchRowsDeep().then(function(rows) {
+        console.log("About to emit boardRefresh");
+        io.emit('boardRefresh', rows);
+      }, function(error) {
+        console.log("Error in fetchRowsDeep", error);
+      });
     });
   });
 }
@@ -400,8 +441,10 @@ function updateRowList(arg, socket) {
   }
 
   console.log(sql, sqlArgs);
-  connection.query(sql, sqlArgs, function (error, results, fields) {
-    emitAction(error, 'row-list:update', arg, socket);
+  connect(function(connection) {
+    connection.query(sql, sqlArgs, function (error, results, fields) {
+      emitAction(error, 'row-list:update', arg, socket);
+    });
   });
 }
 
