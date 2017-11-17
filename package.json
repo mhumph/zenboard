@@ -1,7 +1,11 @@
 {
   "name": "wikiboard-api",
   "version": "0.0.1",
-  "description": "API for WikiBoard",
+  "description": "API for Zen Board",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "body-parser": "^1.18.2",
     "ejs": "^1.0.0",
