@@ -65,13 +65,13 @@ app.get('/react', function (req, res) {
 
 /** Get all rows */
 app.get('/api/rows/', function(req, res) {
-  console.log('Entering /api/rows/');
+  console.log("Entering /rows/");
   connectThenQuery('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
-    console.log("Got results");
+    console.log("Got /rows/");
     sendArray(res, results, error);
-    console.log("Send results")
+    console.log("Sent /rows/")
   });
-  console.log('Existing /api/rows/');
+  console.log("Exiting /rows/");
 });
 
 /** Get all rows, cells and cards */
@@ -168,9 +168,13 @@ app.get('/api/rows/:id', function(req, response) {
 
 /** Get all (unarchived) tasks */
 app.get('/api/tasks/', function(req, res) {
+  console.log("Entering /tasks/");
   connectThenQuery('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 0 ORDER BY row_id, col_id, my_order ASC', function (error, results, fields) {
+    console.log("Got /tasks/");
     sendArray(res, results, error);
+    console.log("Send /tasks/");
   });
+  console.log("Existing /tasks/");
 });
 
 /** Get card by id */
@@ -203,9 +207,13 @@ function initCard(results) {
 
 /** Get archived tasks. TODO: Order by archive date (instead of created date). */
 app.get('/api/archive/tasks/', function(req, res) {
+  console.log("Entering /archive/tasks/")
   connectThenQuery('SELECT id, label, row_id, col_id FROM task WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
+    console.log("Got /archive/tasks/");
     sendArray(res, results, error);
+    console.log("Sent /archive/tasks/");
   });
+  console.log("Exiting /archive/tasks");
 });
 
 /** Save card */
