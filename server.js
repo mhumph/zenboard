@@ -15,8 +15,6 @@ app.set('view engine', 'ejs');//'mustache');
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
 
-// var connection = createConn();
-// connection.connect();
 console.log(dbConfig);
 
 /** Enable CORS (to support other UIs) */
@@ -28,13 +26,8 @@ app.use(function(req, res, next) {
 //app.use(bodyParser.urlencoded({extended: false}));
 var jsonParser = bodyParser.json();
 
-/* TODO: Pooling + transactions */
-function createConn() {
-  return mysql.createConnection(dbConfig);
-}
-
 function connectThenQuery(sql, arg1, arg2) {
-  var conn = createConn();
+  var conn = mysql.createConnection(dbConfig);
   if (typeof arg2 === 'undefined') {
     conn.query(sql, arg1);
   } else {
