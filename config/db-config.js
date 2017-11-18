@@ -4,7 +4,8 @@ exports.getDbConfig = function() {
 	// var password = process.env.ZEN_DB_PASS || 'snowflake';
 	// var database = process.env.ZEN_DB_SCHEMA || 'wikiboard';
 
-	return process.env.CLEARDB_DATABASE_URL || 'mysql://zenadmin:snowflake@localhost/wikiboard';
+	// CLEARDB_DATABASE_URL
+	return process.env.JAWSDB_URL || 'mysql://zenadmin:snowflake@localhost/wikiboard';
 	// return {
 	// 	'host'     : host,
 	// 	'user'     : user,
