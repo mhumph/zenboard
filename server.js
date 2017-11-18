@@ -308,7 +308,7 @@ io.on('connection', function(socket) {
         var updateSql = 'UPDATE task SET row_id = ?, col_id = ?, my_order = ? WHERE id = ?';
         var sqlArgs = [arg.rowId, arg.colId, arg.myOrder, arg.id];
 
-      	connection.query(updateSql, sqlArgs, function (error, results, fields) {
+      	connectThenQuery(updateSql, sqlArgs, function (error, results, fields) {
           console.log('task:move inner query returned', results);
 
           if (!error) {
