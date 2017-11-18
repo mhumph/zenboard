@@ -4,7 +4,7 @@
   "description": "API for Zen Board",
   "main": "server.js",
   "scripts": {
-    "start": "node test.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
