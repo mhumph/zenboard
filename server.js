@@ -38,7 +38,7 @@ function connectThenQuery(sql, arg1, arg2) {
 
 /* UI ************************************************************************/
 
-app.get('/', function (req, res) {
+app.get('/sketch', function (req, res) {
   res.render('index', uiConfig);
 })
 
