@@ -1,0 +1,43 @@
+/* Video dimensions */
+@media (min-aspect-ratio: 48/27), (aspect-ratio: 48/27) {
+  video {
+    width: 100%;
+  }
+}
+@media (max-aspect-ratio: 48/27) {
+  video {
+    height: 100vh;
+  }
+}
+
+/* Column headings ***********************************************************/
+th.col {
+  background-color: rgba(0, 0, 0, 0.3) !important; /*#1D8348;*/
+  color: white !important;
+}
+
+/* Row headings **************************************************************/
+.row-heading-cell {
+  /*background: rgba(0, 0, 0, 0.6) !important;*/
+}
+.row-label {
+  color: white;
+}
+
+/* Cells *********************************************************************/
+.plain-bg {
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Borders *******************************************************************/
+th, td:not(.cell-0) {
+  border: 1px dotted #999 !important;
+}
+
+/* Cards *********************************************************************/
+.task {
+  background-color: #FFF !important;
+}
+.task:hover {
+  background-color: #EEE !important;
+}
