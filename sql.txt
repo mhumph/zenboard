@@ -15,7 +15,7 @@ CREATE TABLE `row` (
   `my_order` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 insert into row (my_order, label) values (1, 'Google recommendations');
@@ -23,7 +23,7 @@ insert into row (my_order, label) values (1, 'Google recommendations');
 insert into row (my_order, label) values (2, 'SEO');
 
 insert into row (my_order, label) values (3, 'Commercial');
-    
+
 insert into row (my_order, label) values (4, 'Maintenance');
 
 insert into row (my_order, label) values (5, 'More maintenance');
@@ -51,7 +51,7 @@ CREATE TABLE `wikiboard`.`task` (
 
 
 insert into task(my_order, label, row_id, col_id) values (
-  1, 'Ads JS: remove depedencies @s', (SELECT id FROM row WHERE label = 'Google recommendations'), 1);
+  1, 'Ads JS: remove dependencies @s', (SELECT id FROM row WHERE label = 'Google recommendations'), 1);
 
 insert into task(my_order, label, row_id, col_id) values (
   2, 'News feed: lazy load images?', (SELECT id FROM row WHERE label = 'Google recommendations'), 1);
@@ -60,7 +60,7 @@ insert into task(my_order, label, row_id, col_id) values (
   1, 'JS optimisation @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 3);
 
 insert into task(my_order, label, row_id, col_id) values (
-  2, 'Remote login @m @a', (SELECT id FROM row WHERE label = 'Google recommendations'), 3); 
+  2, 'Remote login @m @a', (SELECT id FROM row WHERE label = 'Google recommendations'), 3);
 
 insert into task(my_order, label, row_id, col_id) values (
   1, 'Polls fix @g', (SELECT id FROM row WHERE label = 'Google recommendations'), 4);
@@ -212,17 +212,16 @@ insert into task(my_order, label, row_id, col_id) values (
 
 -- What if tasks have a simple index e.g. task.my_order = 3 (for the 4rd task in the list)
 -- UI wouldn't change (insertAt)
--- GOOD: Simple db update e.g. update any tasks with a higher my_order (add 1) 
+-- GOOD: Simple db update e.g. update any tasks with a higher my_order (add 1)
 -- GOOD: Any discrepancies will be minor (typically out by 1, as opposed to jumping to the start/end of the list)
 
 
 -- v0.0.2
 
-ALTER TABLE `wikiboard`.`task` 
+ALTER TABLE `wikiboard`.`task`
 ADD COLUMN `is_archived` TINYINT(1) NOT NULL DEFAULT 0 AFTER `description`;
 
 -- v0.0.3
 
-ALTER TABLE `wikiboard`.`row` 
+ALTER TABLE `wikiboard`.`row`
 ADD COLUMN `info` VARCHAR(512) NULL AFTER `my_order`;
-

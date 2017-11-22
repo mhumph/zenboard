@@ -13,7 +13,20 @@
 /* Column headings ***********************************************************/
 th.col {
   background-color: rgba(0, 0, 0, 0.3) !important; /*#1D8348;*/
-  color: white !important;
+  /*color: white !important;*/
+}
+
+.col-todo {
+  color: #8dcdf6 !important;
+}
+.col-blocked {
+  color: #ff8957 !important;
+}
+.col-inprogress {
+  color: #ffdd57 !important;
+}
+.col-done {
+  color: #23d160 !important;
 }
 
 /* Row headings **************************************************************/
