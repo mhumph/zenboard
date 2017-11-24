@@ -64,7 +64,7 @@ app.get('/api/rows/deep', function(req, response) {
   // TODO: Handle "no rows" scenario
   fetchRowsDeep().then(function(rows) {
     response.send(rows);
-  }, function(error) {
+  }).catch(function(error) {
     response.status(500).send(error);
   });
 });
@@ -119,7 +119,7 @@ function initRows(rawRows) {
       };
     };
     out.push(thisRow);
-    console.log('row', thisRow);
+    // console.log('row', thisRow);
   }
   return out;
 }
@@ -147,7 +147,7 @@ function mergeCardsIntoRows(rows, cards) {
 /** Get row by id */
 app.get('/api/rows/:id', function(req, response) {
   connectThenQuery('SELECT id, label, my_order, info FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
-    sendObject(res, results, error);
+    sendObject(response, results, error);
   });
 });
 
@@ -225,6 +225,42 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
     }
   });
 });
+
+app.post('/api/rows/save', jsonParser, function(req, response) {
+  var body = req.body;
+  console.log('About to save row', body)
+
+  var sqlArgs = [body.label, body.my_order, body.info, body.id];
+  var sql = '';
+  if (body.id) {
+    sql = 'UPDATE row SET label = ?, my_order = ?, info = ? WHERE id = ?';
+  } else {
+    sql = 'INSERT INTO row (label, my_order, info) VALUES (?, ?, ?)';
+  }
+  console.log(sql);
+
+  connectThenQuery(sql, sqlArgs, function (error, results, fields) {
+    if (!error) {
+      if (results && results.insertId) {
+        body.id = results.insertId;
+      }
+      updateRowList_promise(body)
+      .then(fetchRowsDeep)
+      .then(function(rows) {
+        response.sendStatus(200);
+        console.log("About to emit boardRefresh");
+        io.emit('boardRefresh', rows);
+      })
+      .catch(function(err) {
+        console.log("Error saving row", err);
+        response.status(500).send(err);
+      });
+
+    } else {
+      response.status(500).send(error);
+    }
+  });
+})
 
 // app.post('/api/cards/create', jsonParser, function(req, response) {
 //   var body = req.body;
@@ -410,6 +446,43 @@ function updateCell(arg, socket, originalData) {
     }, function(error) {
       console.log("Error in fetchRowsDeep", error);
     });
+  });
+}
+
+function rejectIfUndefined(arg, propArray, reject) {
+  propArray.forEach(function(prop) {
+    if (typeof arg[prop] === 'undefined') {
+      reject('Undefined property ' + prop);
+    }
+  })
+}
+
+function updateRowList_promise(arg) {
+  return new Promise(function(resolve, reject) {
+    rejectIfUndefined(arg, ['id', 'my_order'], reject);
+    if (!arg.originalPosition) console.warn('WARN: Missing originalPosition');
+    if (arg.my_order === arg.originalPosition) {
+      resolve();
+    } else {
+      // REFACTOR: More robust to query original data from DB than to pass it from the UI
+      var sqlArgs = [arg.my_order, (arg.originalPosition || MAX_ORDER), arg.id];
+
+      // Default SQL for when row's order is DEcreased
+      var sql = 'UPDATE row SET my_order = (my_order + 1) WHERE my_order >= ? AND my_order <= ? AND id != ?';
+      if (parseInt(arg.my_order) > arg.originalPosition) {
+        // For when row's order is INcreased
+        sql = 'UPDATE row SET my_order = (my_order - 1) WHERE my_order <= ? AND my_order >= ? AND id != ?';
+      }
+
+      console.log(sql, sqlArgs);
+      connectThenQuery(sql, sqlArgs, function (error, results, fields) {
+        if (error) {
+          reject();
+        } else {
+          resolve();
+        }
+      });
+    }
   });
 }
 
