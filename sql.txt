@@ -225,3 +225,8 @@ ADD COLUMN `is_archived` TINYINT(1) NOT NULL DEFAULT 0 AFTER `description`;
 
 ALTER TABLE `wikiboard`.`row`
 ADD COLUMN `info` VARCHAR(512) NULL AFTER `my_order`;
+
+-- v0.0.4
+
+ALTER TABLE `row`
+ADD COLUMN `is_archived` TINYINT(1) NULL DEFAULT 0 AFTER `info`;

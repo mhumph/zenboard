@@ -62,16 +62,27 @@ app.get('/api/rows/', function(req, res) {
 /** Get all rows, cells and cards */
 app.get('/api/rows/deep', function(req, response) {
   // TODO: Handle "no rows" scenario
-  fetchRowsDeep().then(function(rows) {
+  fetchRowsDeep(false).then(function(rows) {
     response.send(rows);
   }).catch(function(error) {
     response.status(500).send(error);
   });
 });
 
-function fetchRowsDeep() {
+app.get('/api/archive/rows/deep', function(req, response) {
+  // TODO: Handle "no rows" scenario
+  fetchRowsDeep(true).then(function(rows) {
+    response.send(rows);
+  }).catch(function(error) {
+    response.status(500).send(error);
+  });
+});
+
+function fetchRowsDeep(archived) {
+  archived = (typeof archived === 'undefined') ? false : archived;
   return new Promise(function(resolve, reject) {
-    connectThenQuery('SELECT id, label, my_order FROM row ORDER BY my_order ASC', function (error, results, fields) {
+    var sql = 'SELECT id, label, my_order FROM row WHERE is_archived = ? ORDER BY my_order ASC';
+    connectThenQuery(sql, [archived], function (error, results, fields) {
       if (error) {
         reject(error);
       } else {
@@ -146,7 +157,7 @@ function mergeCardsIntoRows(rows, cards) {
 
 /** Get row by id */
 app.get('/api/rows/:id', function(req, response) {
-  connectThenQuery('SELECT id, label, my_order, info FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
+  connectThenQuery('SELECT id, label, my_order, info, is_archived FROM row WHERE id = ?', [req.params.id], function (error, results, fields) {
     sendObject(response, results, error);
   });
 });
@@ -214,7 +225,7 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
     if (error) {
       response.status(500).send(error);
     } else {
-      fetchRowsDeep().then(function(rows) {
+      fetchRowsDeep(false).then(function(rows) {
         response.sendStatus(200);
         console.log("About to emit boardRefresh");
         io.emit('boardRefresh', rows);
@@ -229,13 +240,14 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
 app.post('/api/rows/save', jsonParser, function(req, response) {
   var body = req.body;
   console.log('About to save row', body)
+  //var isArchived = (body.is_archived)
 
-  var sqlArgs = [body.label, body.my_order, body.info, body.id];
+  var sqlArgs = [body.label, body.my_order, body.info, body.isArchived, body.id];
   var sql = '';
   if (body.id) {
-    sql = 'UPDATE row SET label = ?, my_order = ?, info = ? WHERE id = ?';
+    sql = 'UPDATE row SET label = ?, my_order = ?, info = ?, is_archived = ? WHERE id = ?';
   } else {
-    sql = 'INSERT INTO row (label, my_order, info) VALUES (?, ?, ?)';
+    sql = 'INSERT INTO row (label, my_order, info, is_archived) VALUES (?, ?, ?, ?)';
   }
   console.log(sql);
 
@@ -395,7 +407,7 @@ io.on('connection', function(socket) {
     if (arg.id) {
       sql = 'UPDATE row SET label = ?, my_order = ?, info = ? WHERE id = ?';
     } else {
-      sql = 'INSERT INTO row (label, my_order, info) VALUES (?, ?, ?)';
+      sql = 'INSERT INTO row (label, my_order, info) VALUES (?, ?, ?, ?)';
     }
     console.log(sql);
 
@@ -440,7 +452,7 @@ function updateCell(arg, socket, originalData) {
   connectThenQuery(sql, sqlArgs, function (error, results, fields) {
     emitAction(error, 'cell:update', arg, socket);
 
-    fetchRowsDeep().then(function(rows) {
+    fetchRowsDeep(false).then(function(rows) {
       console.log("About to emit boardRefresh");
       io.emit('boardRefresh', rows);
     }, function(error) {
