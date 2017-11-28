@@ -10,13 +10,18 @@
   }
 }
 
+.heading, .nav-item {
+  font-family: "Lucida Console", monospace;
+}
+.masthead {
+  width: 317px !important;
+}
+
 /* Column headings ***********************************************************/
-th.col, .history-col {
+th.col {
   background-color: rgba(0, 0, 0, 0.3) !important; /*#1D8348;*/
   /*color: white !important;*/
-}
-.history-col {
-  color: rgba(255, 255, 255, 0.8) !important;
+  font-family: "Lucida Console", monospace !important;
 }
 
 .col-todo {
@@ -36,11 +41,9 @@ th.col, .history-col {
 .row-heading-cell {
   /*background: rgba(0, 0, 0, 0.6) !important;*/
 }
-.main .row-label {
-  color: white;
-}
-.history .row-label {
-  color: rgba(255, 255, 255, 0.8) !important;
+.row-label {
+  color: #1ec503;
+  font-family: "Lucida Console", monospace;
 }
 
 /* Cells *********************************************************************/
@@ -55,12 +58,10 @@ th, td:not(.cell-0) {
 
 /* Cards *********************************************************************/
 .task {
-  background-color: #FFF !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  color: #1ec503;
+  font-family: "Lucida Console", monospace;
 }
 .task:hover {
-  background-color: #EEE !important;
-}
-
-.history .task {
-  background-color: rgba(255, 255, 255, 0.5) !important;
+  background-color: #000 !important;
 }
