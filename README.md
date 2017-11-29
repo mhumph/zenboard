@@ -2,14 +2,12 @@
 
 ![Demo](etc/demo.gif)
 
-## 1. Try the demo!
+Try the demo here http://zenbrd.herokuapp.com/
 
-http://zenbrd.herokuapp.com/
-
-## 2. Create your own board in 10 minutes
+## Create your own board in 10 minutes
 
 Zenboard is lightweight - suitable for hosting on a free Heroku account.
-(Jump [here](#) if you want to host elsewhere).
+(If you want to host elsewhere try [this guide](#hosting-elsewhere)).
 
 1. You will need Git installed locally
 https://git-scm.com/downloads
@@ -20,15 +18,25 @@ git clone https://github.com/matthumphreys/zenboard.git
 cd zenboard
 ```
 
-3. Signup for a Heroku account https://signup.heroku.com/
+3. (Signup for a Heroku account)[https://signup.heroku.com/]
 
-4. Install the Heroku CLI
-https://devcenter.heroku.com/articles/heroku-cli
+4. (Install the Heroku CLI)[https://devcenter.heroku.com/articles/heroku-cli]
 
-5. Provision JawsDB (MySQL): `heroku addons:create jawsdb`
+5. Make sure you've logged in to Heroku CLI and created the app
+```
+heroku login
+heroku create
+```
 
-6. Deploy Zenboard to Heroku
-https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app
+6. Provision JawsDB (MySQL): `heroku addons:create jawsdb`
+
+7. Deploy Zenboard to Heroku: `git push heroku master`
+
+8. Launch Zenboard in a browser: `heroku open`
+
+Enjoy!
+
+More info on using Node.js on Heroku (here)[https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app]
 
 ### Hosting elsewhere
 
@@ -39,6 +47,6 @@ In most cases:
 - high availability / clustering / load balancing isn't needed
 
 
-## 3. Contribute
+## Contribute
 
 Want to get involved? Get in touch!
