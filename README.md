@@ -12,6 +12,8 @@ Everyone knows that great work requires lazer focus, deep collaboration and moti
 
 Zenboard is a task board that makes it easy.
 
+### Highlights
+
 **1. Collaboration** is easier when tasks can be grouped visually in a row (as popularised by Scrum).
 
 **2. Lazer focus** is easier when there is a roadmap, but in businesses where things constantly change the line between "current work" and "roadmap" is fluid.
@@ -29,7 +31,7 @@ The key to effective teams is the right people having the right conversations at
 - Unlike Trello, Zenboard has *rows* as well as columns
 - Unlike JIRA, you can drag cards between rows. Zenboard is a *pleasure* to use, not a pain.
 
-# Status
+## Status
 
 Zenboard is still v0.1 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017.
 
@@ -66,17 +68,19 @@ heroku create
 9. Launch Zenboard in a browser: `heroku open`
 
 ### More info
-Heroku's guide to working with Node.js [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app)
+Heroku's guide to working with Node.js [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app).
 
 ### To host Zenboard elsewhere
 
-All you need is MySQL and a server supporting Node.js. In most cases:
+All you need is MySQL and a server supporting Node.js
+
+In most cases:
 - there will be relatively few requests per minute so minimal server resources will be needed
 - high availability / clustering / load balancing won't be needed
 
 ## Explore
 
-If you want to explore the source for the Vue.js frontend... [here it is](https://github.com/matthumphreys/zenboard-vue).
+If you want to explore the source for the Vue.js frontend... [it's here](https://github.com/matthumphreys/zenboard-vue).
 
 ## Contribute
 
@@ -86,12 +90,12 @@ Want to get involved? Get in touch!
 
 ### Mobile app
 
-Columns aren't a good fit for mobile. We have a very different design for mobile but that's a story for another day...
+Columns aren't a good fit for mobile. We have a very different design for mobile but that's a story for another day ;)
 
-### Auth, SaaS, etc
+### Auth, SaaS, etc
 
-To develop this Zenboard will need a partner or sponsor.
+To develop this Zenboard needs a contributor or sponsor.
 
-### Estimates TODO
+### Estimating TODO
 
-### Reports TODO
+### Reporting TODO
