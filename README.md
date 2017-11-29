@@ -78,9 +78,11 @@ In most cases:
 - there will be relatively few requests per minute so minimal server resources will be needed
 - high availability / clustering / load balancing won't be needed
 
-## Explore
+## About
 
-If you want to explore the source for the Vue.js frontend... [it's here](https://github.com/matthumphreys/zenboard-vue).
+Zenboard uses Vue.js, Node.js and socket.io
+
+The Vue.js source is in a [separate repo](https://github.com/matthumphreys/zenboard-vue).
 
 ## Contribute
 
