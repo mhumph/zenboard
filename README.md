@@ -16,9 +16,7 @@ Zenboard is a task board that makes it easy.
 
 **1. Collaboration** is easier when tasks can be grouped visually in a row (as popularised by Scrum).
 
-**2. Lazer focus** is easier when there is a roadmap, but in businesses where things constantly change the line between "current work" and "roadmap" is fluid.
-
-With Zenboard you simply drag and drop cards from one row to another.
+**2. Lazer focus** is easier when there is a roadmap, but in businesses where things constantly change, the line between "current work" and "roadmap" is fluid. With Zenboard you simply drag and drop cards from one row to another.
 
 **3. Motivation** is easier when it's clear what the goal is (and when it's expected to be delivered). Zenboard v1.0 will show both.
 
