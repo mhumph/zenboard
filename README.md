@@ -12,11 +12,11 @@ Everyone knows that great work requires lazer focus, deep collaboration and moti
 
 Zenboard is a task board that makes it easy.
 
-### Highlights
+### Secret sauce
 
 **1. Collaboration** is easier when tasks can be grouped visually in a row (as popularised by Scrum).
 
-**2. Lazer focus** is easier when there is a roadmap, but in businesses where things constantly change, the line between "current work" and "roadmap" is fluid. With Zenboard you simply drag and drop cards from one row to another.
+**2. Lazer focus** is easier when there is a roadmap, but roadmaps are fluid. Zenboard embraces this - you simply drag and drop cards from one row to another.
 
 **3. Motivation** is easier when it's clear what the goal is (and when it's expected to be delivered). Zenboard v1.0 will show both.
 
@@ -26,12 +26,13 @@ The key to effective teams is the right people having the right conversations at
 
 ## How does Zenboard compare to "product X"?
 
-- Unlike Trello, Zenboard has *rows* as well as columns
-- Unlike JIRA, you can drag cards between rows. Zenboard is a *pleasure* to use, not a pain.
+- Unlike Trello, Zenboard has *rows* as well as columns.
+- Unlike JIRA, you can drag cards between rows.
+- Unlike JIRA, Zenboard is a *pleasure* to use, not a pain.
 
 ## Status
 
-Zenboard is still v0.1 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017.
+Zenboard is currently v0.1 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017.
 
 ## Create your own board in 10 minutes
 
@@ -66,7 +67,7 @@ heroku create
 9. Launch Zenboard in a browser: `heroku open`
 
 ### More info
-Heroku's guide to working with Node.js [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app).
+Heroku's "getting started" guide for Node.js [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app).
 
 ### To host Zenboard elsewhere
 
@@ -80,7 +81,7 @@ In most cases:
 
 Zenboard uses Vue.js, Node.js and socket.io
 
-The Vue.js source is in a [separate repo](https://github.com/matthumphreys/zenboard-vue).
+The Vue.js source is in a separate repo [here](https://github.com/matthumphreys/zenboard-vue).
 
 ## Contribute
 
@@ -90,12 +91,16 @@ Want to get involved? Get in touch!
 
 ### Mobile app
 
-Columns aren't a good fit for mobile. We have a very different design for mobile but that's a story for another day ;)
+Task board columns aren't a good fit for mobile. We have a very different design for mobile but that's a story for another day ;)
 
 ### Auth, SaaS, etc
 
 To develop this Zenboard needs a contributor or sponsor.
 
-### Estimating TODO
+### Estimating
+
+Will not be supported. TODO: why.
 
 ### Reporting TODO
+
+Will not be supported. TODO: why.
