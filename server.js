@@ -6,6 +6,7 @@ var mysql	  = require('mysql');
 var bodyParser  = require('body-parser')
 var dbConfig  = require('./config/db-config').getDbConfig();
 var uiConfig  = require('./config/ui-config').getAppConfig();
+var fs = require('fs');
 var MAX_ORDER = 1000000;
 
 // Register '.mustache' extension with The Mustache Express
@@ -65,9 +66,40 @@ app.get('/api/rows/deep', function(req, response) {
   fetchRowsDeep(false).then(function(rows) {
     response.send(rows);
   }).catch(function(error) {
-    response.status(500).send(error);
+    if (error.code === 'ER_NO_SUCH_TABLE') {
+
+      // Init and retry
+      initSchema().then(fetchRowsDeep).then(function(rows) {
+        response.send(rows);
+      }).catch(function(error) {
+        response.status(500).send(error);
+      });
+
+    } else {
+      response.status(500).send(error);
+    }
   });
 });
+
+function initSchema() {
+  console.log("Initialising schema");
+  return new Promise(function(resolve, reject) {
+    fs.readFile('./init-schema.sql', 'utf8', function (err, sql) {
+      if (err) {
+        reject(err);
+      }
+      var conn = mysql.createConnection(dbConfig + '?multipleStatements=true');
+      conn.query(sql, function (error, results, fields) {
+        if (err) {
+          reject(err);
+        }
+        console.log("Initialised schema", results);
+        resolve();
+      });
+      conn.end();
+    });
+  });
+}
 
 app.get('/api/archive/rows/deep', function(req, response) {
   // TODO: Handle "no rows" scenario

@@ -32,7 +32,7 @@ The key to effective teams is the right people having the right conversations at
 
 ## Status
 
-Zenboard is currently v0.1 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017.
+Zenboard is currently v0.1 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017 :)
 
 ## Create your own board in 10 minutes
 
@@ -60,11 +60,9 @@ heroku create
 
 6. Provision JawsDB (MySQL): `heroku addons:create jawsdb`
 
-7. Initialise the schema: connect to the database and run sql.txt
+7. Deploy Zenboard to Heroku: `git push heroku master`
 
-8. Deploy Zenboard to Heroku: `git push heroku master`
-
-9. Launch Zenboard in a browser: `heroku open`
+8. Open Zenboard in a browser: `heroku open`
 
 ### More info
 Heroku's "getting started" guide for Node.js [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app).
@@ -76,6 +74,10 @@ All you need is MySQL and a server supporting Node.js
 In most cases:
 - there will be relatively few requests per minute so minimal server resources will be needed
 - high availability / clustering / load balancing won't be needed
+
+## Share the love
+
+If you like Zenboard please GitHub star it, thanks!
 
 ## About
 
