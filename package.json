@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "API for Zen Board",
   "main": "server.js",
+  "engines": {
+    "node": ">=8.9.0"
+  },
   "scripts": {
     "start": "node server.js"
   },
