@@ -1,5 +1,5 @@
 /**
- * This file is reponsible for web and socket logic. It delegates to  core.js
+ * This file is reponsible for the server/web layer. It delegates to core.js
  * for "core" logic.
  */
 var express = require('express');
@@ -7,8 +7,7 @@ var app     = express();
 var http    = require('http').Server(app);
 var io		  = require('socket.io')(http);
 var core    = require('./core');
-var bodyParser  = require('body-parser')
-var MAX_ORDER   = 1000000;
+var bodyParser    = require('body-parser')
 
 // Register '.mustache' extension with The Mustache Express
 app.engine('mustache', require('mustache-express')());
@@ -43,21 +42,23 @@ app.get('/api/rows/deep', function(req, response) {
       core.initSchema().then(core.fetchRowsDeep.bind(core)).then(function(rows) {
         response.send(rows);
       }).catch(function(error) {
-        response.status(500).send(error);
+        sendError(response, error);
       });
 
     } else {
-      response.status(500).send(error);
+      sendError(response, error);
     }
   });
 });
 
-app.get('/api/archive/rows/deep', function(req, response) {
-  // TODO: Handle "no rows" scenario
-  core.fetchRowsDeep(true).then(function(rows) {
-    response.send(rows);
-  }).catch(function(error) {
-    response.status(500).send(error);
+/**
+ * Delete test data. To avoid problems, test rows have a specific (gibberish)
+ * title. (GET instead of POST to make it simpler to call from e2e tests).
+ */
+app.get('/api/rows/delete-test-data', function(req, res) {
+  console.log("Entering /rows/delete-test-data");
+  core.connectThenQuery('DELETE FROM row WHERE title = \'0F65u28Rc66ORYII\' AND id > 0', function (error, results, fields) {
+    sendArray(res, results, error);
   });
 });
 
@@ -98,48 +99,27 @@ app.post('/api/rows/save', jsonParser, (req, response) => {
       .then(core.fetchRowsDeep.bind(core))
       .then(function(rows) {
         response.sendStatus(200);
-        console.log("About to emit boardRefresh");
-        io.emit('boardRefresh', rows);
+        emitBoardRefresh(rows);
       })
       .catch(function(err) {
-        console.log("Error saving row", err);
-        response.status(500).send(err);
+        sendError(response, error, "Error saving row");
       });
 
     } else {
-      response.status(500).send(error);
+      sendError(response, error);
     }
   });
 })
 
-/**
- * Delete test data. To avoid problems, test rows have a specific (gibberish)
- * title.
- */
-app.get('/api/rows/delete-test-data', function(req, res) {
-  console.log("Entering /rows/delete-test-data");
-  core.connectThenQuery('DELETE FROM row WHERE title = \'0F65u28Rc66ORYII\'', function (error, results, fields) {
-    sendArray(res, results, error);
+app.get('/api/archive/rows/deep', function(req, response) {
+  core.fetchRowsDeep(true).then(function(rows) {
+    response.send(rows);
+  }).catch(function(error) {
+    sendError(response, error);
   });
 });
 
 /* REST API: CARDS ************************************************************/
-
-app.get('/api/cards/:id', function(req, response) {
-  core.connectThenQuery('SELECT * FROM card WHERE id = ?', [req.params.id], function (error, results, fields) {
-    if (error) response.status(500).send(error);
-    var card = core.initCard(results)
-    response.send(card);
-  });
-});
-
-/** Get archived tasks. TODO: Order by archive date (instead of created date). */
-app.get('/api/archive/tasks/', function(req, res) {
-  console.log("Entering /archive/tasks/")
-  core.connectThenQuery('SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
-    sendArray(res, results, error);
-  });
-});
 
 /** Save card */
 app.post('/api/cards/save', jsonParser, function(req, response) {
@@ -149,20 +129,34 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
   var sql = 'UPDATE card SET title = ?, description = ?, is_archived = ? WHERE id = ?';
   var sqlArgs = [body.title, body.description, body.isArchived, body.id];
   core.connectThenQuery(sql, sqlArgs, function (error, results, fields) {
-    //sendStatus(error, response);
-    // TODO: emit new data (to update card title on boards)
     if (error) {
-      response.status(500).send(error);
+      sendError(response, error, "Error updating card");
     } else {
       core.fetchRowsDeep(false).then(function(rows) {
         response.sendStatus(200);
-        console.log("About to emit boardRefresh");
-        io.emit('boardRefresh', rows);
+        emitBoardRefresh(rows);
       }, function(error) {
-        console.log("Error in fetchRowsDeep", error);
-        response.status(500).send(error);
+        sendError(response, error, "Error in fetchRowsDeep");
       });
     }
+  });
+});
+
+app.get('/api/cards/:id', function(req, response) {
+  core.connectThenQuery('SELECT * FROM card WHERE id = ?', [req.params.id], function (error, results, fields) {
+    if (error) {
+      sendError(response, error);
+    }
+    var card = core.initCard(results)
+    response.send(card);
+  });
+});
+
+/** Get archived cards. TODO: Order by archive date (instead of created date). */
+app.get('/api/archive/cards/', function(req, res) {
+  console.log("Entering /archive/cards/")
+  core.connectThenQuery('SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
+    sendArray(res, results, error);
   });
 });
 
@@ -170,7 +164,7 @@ app.post('/api/cards/save', jsonParser, function(req, response) {
 
 function sendArray(response, result, error) {
   if (error) {
-    response.status(500).send(error);
+    sendError(response, error);
   } else {
     response.send(result);
   }
@@ -178,25 +172,35 @@ function sendArray(response, result, error) {
 
 function sendObject(response, result, error) {
   if (error) {
-    response.status(500).send(error);
+    sendError(response, error);
   } else {
     var resultToSend = (result.length >= 1) ? result[0] : {};
     response.send(resultToSend);
   }
 }
 
-/* SOCKET.IO *****************************************************************/
+/** Send 500 Internal Server Error */
+function sendError(response, error, msg) {
+  if (msg) {
+    console.error(msg, error);
+  } else {
+    console.error(error);
+  }
+  response.status(500).send(error);
+}
+
+/* SOCKET.IO ******************************************************************/
 
 io.on('connection', function(socket) {
 
-  socket.on('task:move', function(arg) {
-  	console.log('task:move', arg);
+  socket.on('card:move', function(arg) {
+  	console.log('card:move', arg);
 
     var selectSql = 'SELECT * FROM card WHERE id = ?';
     core.connectThenQuery(selectSql, arg.id, function (error, dataBeforeUpdate, fields) {
 
       if (error) {
-        emitAction(error, 'task:move', arg, socket);
+        emitAction(error, 'card:move', arg, socket);
       } else {
 
         console.log('dataBeforeUpdate', dataBeforeUpdate);
@@ -204,48 +208,45 @@ io.on('connection', function(socket) {
         var sqlArgs = [arg.rowId, arg.colId, arg.position, arg.id];
 
       	core.connectThenQuery(updateSql, sqlArgs, function (error, results, fields) {
-          console.log('task:move inner query returned', results);
-
+          console.log('card:move inner query returned', results);
           if (!error) {
             updateCell(arg, socket, dataBeforeUpdate[0]);
-            // Tell other clients to move the task too
-            socket.broadcast.emit('task:move:sync', arg);
           }
-          emitAction(error, 'task:move', arg, socket);
+          emitAction(error, 'card:move', arg, socket);
         });
       }
 
     });
   });
 
-  socket.on('task:create', function(arg) {
-    console.log('task:create', arg);
+  socket.on('card:create', function(arg) {
+    console.log('card:create', arg);
 
     var sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
     var sqlArgs = [arg.rowId, arg.colId, arg.position, arg.title];
 
     core.connectThenQuery(sql, sqlArgs, function (error, results, fields) {
-      console.log('task:create inner query returned', results);
+      console.log('card:create inner query returned', results);
 
       if (!error) {
         arg.id = results.insertId;
         updateCell(arg, socket);
       }
-      emitAction(error, 'task:create', arg, socket);
+      emitAction(error, 'card:create', arg, socket);
     });
   });
 
 });
 
 /**
- * Update order for tasks lower down the cell. REFACTOR: Rename to updateTaskList
+ * Update position of cards within the cell
  * @param originalData MySql result (queried before updating the moved task)
  */
 function updateCell(arg, socket, originalData) {
   // If no originalData provided then assume it's a new card
   if (!originalData) {
     originalData = {
-      position: MAX_ORDER,
+      position: core.MAX_POSITION,
       row_id: arg.rowId,
       col_id: arg.colId
     }
@@ -266,19 +267,23 @@ function updateCell(arg, socket, originalData) {
     emitAction(error, 'cell:update', arg, socket);
 
     core.fetchRowsDeep(false).then(function(rows) {
-      console.log("About to emit boardRefresh");
-      io.emit('boardRefresh', rows);
+      emitBoardRefresh(rows);
     }, function(error) {
       console.log("Error in fetchRowsDeep", error);
     });
   });
 }
 
-/* SOCKET.IO HELPERS *********************************************************/
+/* SOCKET.IO HELPERS **********************************************************/
+
+function emitBoardRefresh(rows) {
+  console.log("About to emit boardRefresh");
+  io.emit('boardRefresh', rows);
+}
 
 /**
  * An action is a user initiated event.
- * Sends to io (if successful) otherwise to the initiating socket.
+ * Sends to io (if action is successful) otherwise to the initiating socket.
  * Also logs to console.
  */
 function emitAction(error, action, arg, socket) {
@@ -299,7 +304,7 @@ function actionStr(action, error) {
   return actionStr;
 }
 
-/* INIT **********************************************************************/
+/* INIT ***********************************************************************/
 
 console.log('process.env.PORT=' + process.env.PORT);
 var port = process.env.PORT || 3001;

@@ -11,7 +11,7 @@
 }
 
 /* Column headings ***********************************************************/
-th.col, .history-col {
+th.zbr-col-heading, .history-col {
   background-color: rgba(0, 0, 0, 0.3) !important; /*#1D8348;*/
   /*color: white !important;*/
 }
@@ -19,47 +19,13 @@ th.col, .history-col {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.col-todo {
-  color: #a0d5f8 !important;
-}
-.col-blocked {
-  color: #ff8957 !important;
-}
-.col-inprogress {
-  color: #ffdd57 !important;
-}
-.col-done {
-  color: #23d160 !important;
-}
-
 /* Row headings **************************************************************/
-.row-heading-cell {
-  /*background: rgba(0, 0, 0, 0.6) !important;*/
-}
-.main .row-label {
-  color: white;
-}
+
 .history .row-label {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Cells *********************************************************************/
-.plain-bg {
-  background: rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Borders *******************************************************************/
-th, td:not(.cell-0) {
-  border: 1px dotted #999 !important;
-}
-
 /* Cards *********************************************************************/
-.task {
-  background-color: #FFF !important;
-}
-.task:hover {
-  background-color: #EEE !important;
-}
 
 .history .task {
   background-color: rgba(255, 255, 255, 0.5) !important;

@@ -23,6 +23,10 @@ task:create
 
 class Core {
 
+  get MAX_POSITION() {
+    return MAX_POSITION;
+  }
+
   /* ROWS *********************************************************************/
 
   fetchRowsDeep(archived) {
@@ -35,9 +39,13 @@ class Core {
         if (error) {
           reject(error);
         } else {
-          this.fetchCardsForRows(results).then(function(rows) {
-            resolve(rows);
-          }, this.rejector);
+          if (results.length === 0) {
+            resolve([]);  // No rows, no need to fetch cards
+          } else {
+            this.fetchCardsForRows(results).then(function(rows) {
+              resolve(rows);
+            }, this.rejector);
+          }
         }
       });
     });
@@ -149,7 +157,6 @@ class Core {
   /* UTILS ********************************************************************/
 
   connectThenQuery(sql, arg1, arg2) {
-    console.log("Entering connectThenQuery", sql)
     var conn = mysql.createConnection(dbConfig);
     if (typeof arg2 === 'undefined') {
       conn.query(sql, arg1);
