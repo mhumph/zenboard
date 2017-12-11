@@ -105,4 +105,4 @@ Zenboard isn't planning specific features for task estimating or velocity report
 
 To find out why, watch [this video on Modern Agile](https://www.agilealliance.org/resources/videos/modern-agile/).
 
-![Modern Agile](https://media.licdn.com/mpr/mpr/AAEAAQAAAAAAAAtyAAAAJDEwMDIyMDVlLTliM2YtNDc4YS04NjBkLWJmOWJlZGI3YjFlYw.png =300x)
+<img src="http://modernagile.org/img/modern_agile_wheel.svg" alt="Modern Agile" width="300" />
