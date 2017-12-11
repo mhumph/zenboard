@@ -1,4 +1,4 @@
-CREATE TABLE `zenboard`.`row` (
+CREATE TABLE `row` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `position` int(11) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE `zenboard`.`row` (
   UNIQUE KEY `id_UNIQUE` (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `zenboard`.`card` (
+CREATE TABLE `card` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `title` VARCHAR(512) NOT NULL,
   `row_id` INT NULL,  --
