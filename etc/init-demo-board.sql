@@ -1,3 +1,12 @@
+-- Delete default card/rows
+
+delete from card where row_id = 1;
+
+delete from row where id in (1, 2);
+
+
+-- Create demo data
+
 insert into row (position, title) values (1, 'Video player');
 
 insert into row (position, title) values (2, 'Revenue');

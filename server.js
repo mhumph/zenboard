@@ -5,9 +5,9 @@
 var express = require('express');
 var app     = express();
 var http    = require('http').Server(app);
-var io		  = require('socket.io')(http);
+var io      = require('socket.io')(http);
 var core    = require('./core');
-var bodyParser    = require('body-parser')
+var bodyParser  = require('body-parser')
 
 // Register '.mustache' extension with The Mustache Express
 app.engine('mustache', require('mustache-express')());

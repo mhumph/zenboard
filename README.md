@@ -75,6 +75,8 @@ In most cases:
 - there will be relatively few requests per minute so minimal server resources will be needed
 - high availability / clustering / load balancing won't be needed
 
+NOTE: If the app doesn't find the necessary MySQL tables, then it will automatically create them. The schema to contain them must exist though - see config/db-config.js
+
 ## Share the love
 
 If you like Zenboard please GitHub star it, thanks!
@@ -97,12 +99,12 @@ Task board columns aren't a good fit for mobile. We have a very different design
 
 ### Auth, SaaS, etc
 
-To develop this Zenboard needs a contributor or sponsor.
+To develop auth/SaaS, Zenboard will need a contributor or sponsor.
 
-### Estimating
+### Estimating, "sprint velocity", etc
 
-Will not be supported. TODO: why.
+Zenboard isn't planning specific features for task estimating or velocity reports.
 
-### Reporting TODO
+To find out why, watch [this video on Modern Agile](https://www.agilealliance.org/resources/videos/modern-agile/).
 
-Will not be supported. TODO: why.
+![Modern Agile](http://modernagile.org/img/modern_agile_wheel.svg =300x)

@@ -1,7 +1,7 @@
 {
-  "name": "wikiboard-api",
+  "name": "zenboard",
   "version": "0.0.1",
-  "description": "API for Zen Board",
+  "description": "Zenboard server",
   "main": "server.js",
   "engines": {
     "node": ">=8.9.0"

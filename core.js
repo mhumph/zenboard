@@ -1,25 +1,9 @@
 /** Core logic - no UI, HTTP, etc */
-'use strict';
+'use strict'
 let mysql     = require('mysql');
 let dbConfig  = require('./config/db-config').getDbConfig();
 let fs        = require('fs');
 const MAX_POSITION  = 1000000;
-
-/**
-API CALLS:
-/api/rows/deep
-/api/archive/rows/deep
-/api/rows/ID
-/api/rows/
-POST /api/rows/save
-/api/cards/ID
-POST /api/cards/save
-
-SOCKET CALLS:
-task:move
-task:create
-
-*/
 
 class Core {
 
@@ -83,7 +67,6 @@ class Core {
         };
       };
       out.push(thisRow);
-      // console.log('row', thisRow);
     }
     return out;
   }

@@ -1,3 +1,5 @@
+-- Rows have cards. That's all!
+
 CREATE TABLE `row` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
@@ -11,7 +13,7 @@ CREATE TABLE `row` (
 CREATE TABLE `card` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `title` VARCHAR(512) NOT NULL,
-  `row_id` INT NULL,  --
+  `row_id` INT NULL,
   `col_id` INT NULL,
   `position` INT NOT NULL,
   `description` LONGTEXT NULL,
