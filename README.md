@@ -69,13 +69,11 @@ Heroku's "getting started" guide for Node.js [here](https://devcenter.heroku.com
 
 ### To host Zenboard elsewhere
 
-All you need is MySQL and a server supporting Node.js
-
-In most cases:
-- there will be relatively few requests per minute so minimal server resources will be needed
+All you need is MySQL and a server supporting Node.js. In most cases:
+- minimal server resources will be needed, as there will be relatively few requests per minute
 - high availability / clustering / load balancing won't be needed
 
-NOTE: If the app doesn't find the necessary MySQL tables, then it will automatically create them. The schema to contain them must exist though - see config/db-config.js
+NOTE: If the app doesn't find the necessary MySQL tables, then it will automatically create them. The schema to contain them must already exist though - see config/db-config.js
 
 ## Share the love
 
@@ -107,4 +105,4 @@ Zenboard isn't planning specific features for task estimating or velocity report
 
 To find out why, watch [this video on Modern Agile](https://www.agilealliance.org/resources/videos/modern-agile/).
 
-![Modern Agile](http://modernagile.org/img/modern_agile_wheel.svg =300x)
+![Modern Agile](https://media.licdn.com/mpr/mpr/AAEAAQAAAAAAAAtyAAAAJDEwMDIyMDVlLTliM2YtNDc4YS04NjBkLWJmOWJlZGI3YjFlYw.png =300x)
