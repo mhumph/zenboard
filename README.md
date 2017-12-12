@@ -44,7 +44,7 @@ https://git-scm.com/downloads
 
 2. Clone the Zenboard repo
 ```
-git clone https://github.com/matthumphreys/zenboard.git
+git clone https://github.com/mhumph/zenboard.git
 cd zenboard
 ```
 
@@ -83,7 +83,7 @@ If you like Zenboard please GitHub star it, thanks!
 
 Zenboard uses Vue.js, Node.js and socket.io
 
-The Vue.js source is in a separate repo [here](https://github.com/matthumphreys/zenboard-vue).
+The Vue.js source is in a separate repo [here](https://github.com/mhumph/zenboard-vue).
 
 ## Contribute
 

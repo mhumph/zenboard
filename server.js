@@ -23,8 +23,23 @@ app.use(function(req, res, next) {
   next();
 });
 
-//app.use(bodyParser.urlencoded({extended: false}));
 var jsonParser = bodyParser.json();
+
+/* REST API: BOARD ************************************************************/
+
+app.get('/api/board/', function(request, response) {
+  core.connectThenQuery('SELECT title FROM board WHERE id = 1', function (error, results, fields) {
+    sendObject(response, results, error);
+  });
+});
+
+app.post('/api/board/', jsonParser, function(request, response) {
+  console.log('About to save board title')
+  let title = request.body.title
+  core.connectThenQuery('UPDATE board SET title = ? WHERE id = 1', [title], function (error, results, fields) {
+    sendObject(response, results, error);
+  });
+});
 
 /* REST API: ROWS *************************************************************/
 

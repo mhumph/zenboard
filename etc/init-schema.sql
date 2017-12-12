@@ -1,4 +1,12 @@
--- Rows have cards. That's all!
+-- The board has rows and cards
+-- There is one board per schema
+
+CREATE TABLE `board` (
+  `id` INT NOT NULL,
+  `title` VARCHAR(64) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC)
+) DEFAULT CHARSET=utf8;
 
 CREATE TABLE `row` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -21,6 +29,10 @@ CREATE TABLE `card` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+insert into board (id, title) values (1, 'Acme Dev Team');
+
 
 insert into row (position, title) values (1, 'Example row');
 
