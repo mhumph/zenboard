@@ -32,7 +32,7 @@ The key to effective teams is the right people having the right conversations at
 
 ## Status
 
-Zenboard is currently v0.1 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017 :)
+Zenboard is currently v0.2 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017 :)
 
 ## Create your own board in 10 minutes
 
