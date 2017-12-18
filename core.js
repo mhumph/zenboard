@@ -18,7 +18,7 @@ class Core {
 
     archived = (typeof archived === 'undefined') ? false : archived;
     return new Promise((resolve, reject) => {
-      var sql = 'SELECT id, title, position FROM row WHERE is_archived = ? ORDER BY position ASC';
+      var sql = 'SELECT id, title, position, description FROM row WHERE is_archived = ? ORDER BY position ASC';
       this.connectThenQuery(sql, [archived], (error, results, fields) => {
         if (error) {
           reject(error);
@@ -57,6 +57,7 @@ class Core {
         id: rawRow.id,
         title: rawRow.title,
         position: rawRow.position,
+        description: rawRow.description,
         cells: new Array(4)
       }
       // Init cells
