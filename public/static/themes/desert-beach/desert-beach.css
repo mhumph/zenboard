@@ -9,24 +9,3 @@
     height: 100vh;
   }
 }
-
-/* Column headings ***********************************************************/
-th.zbr-col-heading, .history-col {
-  background-color: rgba(0, 0, 0, 0.3) !important; /*#1D8348;*/
-  /*color: white !important;*/
-}
-.history-col {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-/* Row headings **************************************************************/
-
-.history .row-label {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-/* Cards *********************************************************************/
-
-.history .task {
-  background-color: rgba(255, 255, 255, 0.5) !important;
-}

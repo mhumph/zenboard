@@ -33,7 +33,6 @@ CREATE TABLE `card` (
 
 insert into board (id, title) values (1, 'Acme Dev Team');
 
-
 insert into row (position, title) values (1, 'Example row');
 
 insert into row (position, title) values (2, 'New requests, issues, etc');

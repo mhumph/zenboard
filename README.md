@@ -1,4 +1,4 @@
-# Zenboard: team work made easy
+# Zenboard: teamwork made easy
 
 ![Zenboard](etc/demo.gif)
 
@@ -6,23 +6,21 @@ Try it out here http://zenbrd.herokuapp.com/
 
 ## Why Zenboard?
 
-We believe that your team can achieve something great.
+We believe that your team can achieve great things.
 
-Everyone knows that great work requires lazer focus, deep collaboration and motivation, but until now these things have been a dark art.
+You don't need the world's most talented individuals, but you do need great teamwork.
 
-Zenboard is a task board that makes it easy.
+You need lazer focus, deep collaboration and "user-centricity".
+
+Zenboard is a team board that makes all of this easier.
 
 ### Secret sauce
 
-**1. Collaboration** is easier when tasks can be grouped visually in a row (as popularised by Scrum).
+**1. Collaboration.** Grouping cards visually in a row makes it easier to see where collaboration is needed (as popularised by Scrum).
 
-**2. Lazer focus** is easier when there is a roadmap, but roadmaps are fluid. Zenboard embraces this - you simply drag and drop cards from one row to another.
+**2. Lazer focus** is easier when there is a roadmap, but roadmaps are fluid. With Zenboard you can move whole rows, and you can simply drag and drop cards from one row to another.
 
-**3. Motivation** is easier when it's clear what the goal is (and when it's expected to be delivered). Zenboard v1.0 will show both.
-
-### What else?
-
-The key to effective teams is the right people having the right conversations at the right time. Coming soon in v1.1!
+**3. Motivation** is easier when there's visibility of what the goal is (and when it's expected to be delivered). Zenboard's rows make this easy.
 
 ## How does Zenboard compare to "product X"?
 
@@ -32,7 +30,7 @@ The key to effective teams is the right people having the right conversations at
 
 ## Status
 
-Zenboard is currently v0.2 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017 :)
+Zenboard is currently v0.3 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017 :)
 
 ## Create your own board in 10 minutes
 
@@ -93,7 +91,7 @@ Want to get involved? Get in touch!
 
 ### Mobile app
 
-Task board columns aren't a good fit for mobile. We have a very different design for mobile but that's a story for another day ;)
+Board columns aren't a good fit for mobile. We have a very different design for mobile but that's a story for another day ;)
 
 ### Auth, SaaS, etc
 

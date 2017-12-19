@@ -7,13 +7,13 @@ delete from row where id in (1, 2);
 
 -- Create demo data
 
-insert into row (position, title) values (1, 'Video player');
+insert into row (position, title, description) values (1, 'Video player', '* Goal: +50% video engagement\n* ETA: Fri 1st Feb');
 
-insert into row (position, title) values (2, 'Revenue');
+insert into row (position, title, description) values (2, 'Revenue', '* Ongoing');
 
-insert into row (position, title) values (3, 'Maintenance');
+insert into row (position, title, description) values (3, 'Maintenance', '* Ongoing');
 
-insert into row (position, title) values (4, 'SEO');
+insert into row (position, title, description) values (4, 'Search referrals', '* Start: Mon 4th Feb');
 
 insert into row (position, title) values (5, 'Page speed');
 
@@ -27,10 +27,13 @@ insert into row (position, title) values (9, 'Big ideas');
 
 
 insert into card(position, title, row_id, col_id) values (
-  1, 'Support embedding on 3rd party sites', (SELECT id FROM row WHERE title = 'Video player'), 1);
+  1, 'Setup CDN', (SELECT id FROM row WHERE title = 'Video player'), 1);
 
 insert into card(position, title, row_id, col_id) values (
-  1, 'Custom editor: waiting on @cc', (SELECT id FROM row WHERE title = 'Video player'), 2);
+  2, 'Support embedding on 3rd party sites', (SELECT id FROM row WHERE title = 'Video player'), 1);
+
+insert into card(position, title, row_id, col_id) values (
+  1, 'Upload videos: waiting on @cc', (SELECT id FROM row WHERE title = 'Video player'), 2);
 
 insert into card(position, title, row_id, col_id) values (
   1, 'WordPress integration @mh', (SELECT id FROM row WHERE title = 'Video player'), 3);
@@ -50,8 +53,6 @@ insert into card(position, title, row_id, col_id) values (
 insert into card(position, title, row_id, col_id) values (
   2, 'Minimal VJS player @s', (SELECT id FROM row WHERE title = 'Video player'), 4);
 
-insert into card(position, title, row_id, col_id) values (
-  3, 'Setup CDN', (SELECT id FROM row WHERE title = 'Video player'), 4);
 
 
 insert into card(position, title, row_id, col_id) values (
@@ -59,9 +60,6 @@ insert into card(position, title, row_id, col_id) values (
 
 insert into card(position, title, row_id, col_id) values (
   2, 'New header bidding adapter @s', (SELECT id FROM row WHERE title = 'Revenue'), 1);
-
-insert into card(position, title, row_id, col_id) values (
-  3, 'Geo-targeting PoC', (SELECT id FROM row WHERE title = 'Revenue'), 1);
 
 insert into card(position, title, row_id, col_id) values (
   1, 'Taboola changes: waiting on @al', (SELECT id FROM row WHERE title = 'Revenue'), 2);
@@ -87,16 +85,16 @@ insert into card(position, title, row_id, col_id) values (
 
 
 insert into card(position, title, row_id, col_id) values (
-  1, 'Sitemap enhancements', (SELECT id FROM row WHERE title = 'SEO'), 1);
+  1, 'Sitemap enhancements', (SELECT id FROM row WHERE title = 'Search referrals'), 1);
 
 insert into card(position, title, row_id, col_id) values (
-  2, 'Tag page enhancements', (SELECT id FROM row WHERE title = 'SEO'), 1);
+  2, 'Tag page enhancements', (SELECT id FROM row WHERE title = 'Search referrals'), 1);
 
 insert into card(position, title, row_id, col_id) values (
-  3, 'RSS enhancements', (SELECT id FROM row WHERE title = 'SEO'), 1);
+  3, 'RSS enhancements', (SELECT id FROM row WHERE title = 'Search referrals'), 1);
 
 insert into card(position, title, row_id, col_id) values (
-  1, 'Investigate sitemaps @mh', (SELECT id FROM row WHERE title = 'SEO'), 3);
+  1, 'Investigate sitemaps @mh', (SELECT id FROM row WHERE title = 'Search referrals'), 3);
 
 
 insert into card(position, title, row_id, col_id) values (
@@ -109,10 +107,7 @@ insert into card(position, title, row_id, col_id) values (
   3, 'Remove customiser CSS', (SELECT id FROM row WHERE title = 'Page speed'), 1);
 
 insert into card(position, title, row_id, col_id) values (
-  4, 'Avoid redirect', (SELECT id FROM row WHERE title = 'Page speed'), 1);
-
-insert into card(position, title, row_id, col_id) values (
-  5, 'Track page speed over time #analytics', (SELECT id FROM row WHERE title = 'Page speed'), 1);
+  4, 'Track page speed over time #analytics', (SELECT id FROM row WHERE title = 'Page speed'), 1);
 
 
 insert into card(position, title, row_id, col_id) values (
@@ -129,7 +124,13 @@ insert into card(position, title, row_id, col_id) values (
   1, 'Fix RSS titles', (SELECT id FROM row WHERE title = 'More maintenance'), 1);
 
 insert into card(position, title, row_id, col_id) values (
-  2, 'Monitor mobile articles', (SELECT id FROM row WHERE title = 'More maintenance'), 1);
+  2, 'Geo-targeting PoC', (SELECT id FROM row WHERE title = 'More maintenance'), 1);
+
+insert into card(position, title, row_id, col_id) values (
+  3, 'Monitor mobile articles', (SELECT id FROM row WHERE title = 'More maintenance'), 1);
+
+insert into card(position, title, row_id, col_id) values (
+  4, 'Avoid redirect #pagespeed', (SELECT id FROM row WHERE title = 'More maintenance'), 1);
 
 
 insert into card(position, title, row_id, col_id) values (
