@@ -37,8 +37,7 @@ Zenboard is currently v0.3 - expect bugs, instability and missing functionality.
 Zenboard is lightweight - suitable for hosting on a free Heroku account.
 (If you want to host elsewhere check [this guide](#to-host-zenboard-elsewhere)).
 
-1. You will need Git installed locally
-https://git-scm.com/downloads
+1. You will need Git installed locally. You can download it [here](https://git-scm.com/downloads).
 
 2. Clone the Zenboard repo
 ```

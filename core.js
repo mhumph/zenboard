@@ -86,7 +86,9 @@ class Core {
         rowCell.cards.push(card);
         row.cells[colId - 1] = rowCell;
       } else {
-        console.log('Row not found with id ' + rowId);
+        if (rowId !== null) {
+          console.log('Row not found with id ' + rowId);
+        }
       }
     }
   }
@@ -138,8 +140,140 @@ class Core {
     return card;
   }
 
+  createCard(arg) {
+    let sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
+    let sqlArgs = [arg.rowId, arg.colId, arg.position, arg.title];
+
+    return new Promise( (resolve, reject) => {
+      this.connectThenQuery(sql, sqlArgs, function (error, results, fields) {
+        if (error) {
+          reject(error)
+        } else {
+          arg.id = results.insertId;
+          resolve(arg);
+        }
+      })
+    })
+  }
+
+  /** Adds dataBeforeUpdate prop to arg */
+  fetchCard(arg) {
+    console.log("Entering fetchCard");
+    var selectSql = 'SELECT * FROM card WHERE id = ?';
+    return new Promise( (resolve, reject) => {
+      this.connectThenQuery(selectSql, arg.id, (error, dataBeforeUpdate, fields) => {
+        if (error) {
+          reject(error)
+        } else {
+          arg.originalData = dataBeforeUpdate[0]
+          resolve(arg)
+        }
+      });
+    });
+  }
+
+  updateCard(arg) {
+    console.log('Entering updateCard', arg);
+    if (!arg) throw Error("arg expected")
+
+    var updateSql = 'UPDATE card SET row_id = ?, col_id = ?, position = ? WHERE id = ?';
+    var sqlArgs = [arg.rowId, arg.colId, arg.position, arg.id];
+
+    return new Promise( (resolve, reject) => {
+      this.connectThenQuery(updateSql, sqlArgs, (error, results, fields) => {
+        (error) ? reject(error) : resolve(arg);
+      });
+    });
+  }
+
+  updateDestinationAndSourceCells(arg) {
+    console.log("Entering updateDestinationAndSourceCells");
+    // If no originalData provided then assume it's a new card
+    if (!arg.originalData) {
+      arg.originalData = {
+        position: MAX_POSITION,
+        row_id: arg.rowId,
+        col_id: arg.colId
+      }
+    }
+    return new Promise( (resolve, reject) => {
+      this.updateDestinationCell(arg)
+      .then(this.updateSourceCell.bind(this))
+      .then(resolve)
+      .catch(function(error) {
+        console.error("Error in updateDestinationAndSourceCells", error);
+        reject();
+      });
+    });
+  }
+
+  /**
+   * Update position of cards within the destination cell
+   * @param arg.originalData MySql result (queried before updating the moved task)
+   */
+  updateDestinationCell(arg) {
+    console.log("Entering updateDestinationCell");
+
+    let originalData = arg.originalData;
+    let originalPosition = originalData.position;
+    // If the card has moved cell, then we want to update all card's in the cell with a bigger position
+    if ((arg.rowId != originalData.row_id) || (arg.colId != originalData.col_id)) {
+      originalPosition = MAX_POSITION;
+    }
+    var sqlArgs = [arg.rowId, arg.colId, arg.position, originalPosition, arg.id];
+
+    // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
+    var sql = 'UPDATE card SET position = (position + 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND position <= ? AND id != ?';
+
+    // Check if the task has been moved within a cell, and it's order has INcreased
+    if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id)
+        && (arg.position > originalData.position)) {
+      sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position <= ? AND position >= ? AND id != ?';
+    }
+
+    console.log(sql, sqlArgs);
+    return new Promise( (resolve, reject) => {
+      this.connectThenQuery(sql, sqlArgs, (error, results, fields) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(arg);
+        }
+      });
+    });
+  }
+
+  /**
+   * Update position of cards within the source cell
+   * @param arg.originalData MySql result (queried before updating the moved task)
+   */
+  updateSourceCell(arg) {
+    console.log("Entering updateSourceCell");
+
+    let originalData = arg.originalData;
+
+    // If source cell and destinatio cell are the same then we don't need to do anything
+    if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id)) {
+      return Promise.resolve(arg);
+
+    } else {
+
+      var sqlArgs = [originalData.row_id, originalData.col_id, originalData.position, arg.id];
+
+      // Move up cards that were below "arg" card
+      var sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND id != ?';
+      console.log(sql, sqlArgs);
+      return new Promise( (resolve, reject) => {
+        this.connectThenQuery(sql, sqlArgs, (error, results, fields) => {
+          (error) ? reject(error) : resolve(arg);
+        });
+      });
+    }
+  }
+
   /* UTILS ********************************************************************/
 
+  /** arg1 or arg2 should be a callback */
   connectThenQuery(sql, arg1, arg2) {
     var conn = mysql.createConnection(dbConfig);
     if (typeof arg2 === 'undefined') {

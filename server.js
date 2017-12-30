@@ -50,7 +50,7 @@ app.get('/api/rows/deep', function(req, response) {
     response.send(rows);
   }).catch(function(error) {
 
-    // Simplify installing Zenboard: if table doesn't exist then init schema
+    // This simplifies installation: if table doesn't exist then init schema
     if (error.code === 'ER_NO_SUCH_TABLE') {
 
       // Init then retry query
@@ -71,7 +71,7 @@ app.get('/api/rows/deep', function(req, response) {
  * title. (GET instead of POST to make it simpler to call from e2e tests).
  */
 app.get('/api/rows/delete-test-data', function(req, res) {
-  console.log("Entering /rows/delete-test-data");
+  console.log("About to delete test data");
   core.connectThenQuery('DELETE FROM row WHERE title = \'0F65u28Rc66ORYII\' AND id > 0', function (error, results, fields) {
     sendArray(res, results, error);
   });
@@ -169,7 +169,6 @@ app.get('/api/cards/:id', function(req, response) {
 
 /** Get archived cards. TODO: Order by archive date (instead of created date). */
 app.get('/api/archive/cards/', function(req, res) {
-  console.log("Entering /archive/cards/")
   core.connectThenQuery('SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC', function (error, results, fields) {
     sendArray(res, results, error);
   });
@@ -209,87 +208,48 @@ function sendError(response, error, msg) {
 io.on('connection', function(socket) {
 
   socket.on('card:move', function(arg) {
-  	console.log('card:move', arg);
+    console.log('card:move', arg);
 
-    var selectSql = 'SELECT * FROM card WHERE id = ?';
-    core.connectThenQuery(selectSql, arg.id, function (error, dataBeforeUpdate, fields) {
-
-      if (error) {
-        emitAction(error, 'card:move', arg, socket);
-      } else {
-
-        console.log('dataBeforeUpdate', dataBeforeUpdate);
-        var updateSql = 'UPDATE card SET row_id = ?, col_id = ?, position = ? WHERE id = ?';
-        var sqlArgs = [arg.rowId, arg.colId, arg.position, arg.id];
-
-      	core.connectThenQuery(updateSql, sqlArgs, function (error, results, fields) {
-          console.log('card:move inner query returned', results);
-          if (!error) {
-            updateCell(arg, socket, dataBeforeUpdate[0]);
-          }
-          emitAction(error, 'card:move', arg, socket);
-        });
-      }
-
+    // TODO: Abort if card moved to it's original position
+    core.fetchCard(arg)
+    .then(core.updateCard.bind(core))
+    .then(core.updateDestinationAndSourceCells.bind(core))
+    .then(function() {
+      // Success
+      emitAction(false, 'card:move', arg, socket);
+      fetchAndEmitRefresh();
+    }).catch(function(error) {
+      // Error
+      emitAction(error, 'card:move', arg, socket);
     });
   });
 
   socket.on('card:create', function(arg) {
     console.log('card:create', arg);
 
-    var sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
-    var sqlArgs = [arg.rowId, arg.colId, arg.position, arg.title];
-
-    core.connectThenQuery(sql, sqlArgs, function (error, results, fields) {
-      console.log('card:create inner query returned', results);
-
-      if (!error) {
-        arg.id = results.insertId;
-        updateCell(arg, socket);
-      }
+    core.createCard(arg)
+    .then(core.updateDestinationAndSourceCells.bind(core))
+    .then(function() {
+      // Success
+      emitAction(false, 'card:create', arg, socket);
+      fetchAndEmitRefresh();
+    }).catch(function(error) {
+      // Error
       emitAction(error, 'card:create', arg, socket);
-    });
+    })
   });
 
 });
 
-/**
- * Update position of cards within the cell
- * @param originalData MySql result (queried before updating the moved task)
- */
-function updateCell(arg, socket, originalData) {
-  // If no originalData provided then assume it's a new card
-  if (!originalData) {
-    originalData = {
-      position: core.MAX_POSITION,
-      row_id: arg.rowId,
-      col_id: arg.colId
-    }
-  }
-  var sqlArgs = [arg.rowId, arg.colId, arg.position, originalData.position, arg.id];
+/* SOCKET.IO HELPERS **********************************************************/
 
-  // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
-  var sql = 'UPDATE card SET position = (position + 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND position <= ? AND id != ?';
-
-  // Check if the task has been moved within a cell, and it's order has INcreased
-  if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id)
-      && (arg.position > originalData.position)) {
-    sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position <= ? AND position >= ? AND id != ?';
-  }
-
-  console.log(sql);
-  core.connectThenQuery(sql, sqlArgs, function (error, results, fields) {
-    emitAction(error, 'cell:update', arg, socket);
-
-    core.fetchRowsDeep(false).then(function(rows) {
-      emitBoardRefresh(rows);
-    }, function(error) {
-      console.log("Error in fetchRowsDeep", error);
-    });
+function fetchAndEmitRefresh() {
+  core.fetchRowsDeep(false).then(function(rows) {
+    emitBoardRefresh(rows);
+  }, function(error) {
+    console.log("Error in fetchRowsDeep", error);
   });
 }
-
-/* SOCKET.IO HELPERS **********************************************************/
 
 function emitBoardRefresh(rows) {
   console.log("About to emit boardRefresh");
@@ -308,6 +268,7 @@ function emitAction(error, action, arg, socket) {
   if (!error) {
     io.emit(actionStr, arg);     // Tell everyone
   } else {
+    console.log(error);
     socket.emit(actionStr, arg); // Tell only the initiator
   }
 }
