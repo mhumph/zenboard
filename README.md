@@ -14,19 +14,7 @@ You need laser focus, deep collaboration and "user-centricity".
 
 Zenboard is a team board that makes all of this easier.
 
-### Secret sauce
-
-**1. Collaboration.** Grouping cards visually in a row makes it easier to see where collaboration is needed (as popularised by Scrum).
-
-**2. Laser focus** is easier when there is a roadmap, but roadmaps are fluid. With Zenboard you can move whole rows, and you can simply drag and drop cards from one row to another.
-
-**3. Motivation** is easier when there's visibility of what the goal is (and when it's expected to be delivered). Zenboard's rows make this easy.
-
-## How does Zenboard compare to "product X"?
-
-- Unlike Trello, Zenboard has *rows* as well as columns.
-- Unlike JIRA, you can drag cards between rows.
-- Unlike JIRA, Zenboard is a *pleasure* to use, not a pain.
+To find out how read (this blog post)[https://yojava.wordpress.com/2018/01/01/get-superpowers-awesome-team-board/].
 
 ## Status
 
