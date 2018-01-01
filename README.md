@@ -10,7 +10,7 @@ We believe that your team can achieve great things.
 
 You don't need the world's most talented individuals, but you do need great teamwork.
 
-You need lazer focus, deep collaboration and "user-centricity".
+You need laser focus, deep collaboration and "user-centricity".
 
 Zenboard is a team board that makes all of this easier.
 
@@ -18,7 +18,7 @@ Zenboard is a team board that makes all of this easier.
 
 **1. Collaboration.** Grouping cards visually in a row makes it easier to see where collaboration is needed (as popularised by Scrum).
 
-**2. Lazer focus** is easier when there is a roadmap, but roadmaps are fluid. With Zenboard you can move whole rows, and you can simply drag and drop cards from one row to another.
+**2. Laser focus** is easier when there is a roadmap, but roadmaps are fluid. With Zenboard you can move whole rows, and you can simply drag and drop cards from one row to another.
 
 **3. Motivation** is easier when there's visibility of what the goal is (and when it's expected to be delivered). Zenboard's rows make this easy.
 
