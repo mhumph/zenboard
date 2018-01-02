@@ -16,7 +16,7 @@ Zenboard is a team board that makes all of this easier. Read more [here](https:/
 
 ## Status
 
-Zenboard is currently v0.3 - expect bugs, instability and missing functionality. We hope to release v1.0 by the end of 2017 :)
+Zenboard is currently v0.3. There will be bugs. Archiving is not yet implemented.
 
 ## Create your own board in 10 minutes
 
