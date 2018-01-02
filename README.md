@@ -12,7 +12,7 @@ You don't need the world's most talented individuals, but you do need great team
 
 You need laser focus, deep collaboration and "user-centricity".
 
-Zenboard is a team board that makes all of this easier. [Read more](https://yojava.wordpress.com/2018/01/01/get-superpowers-awesome-team-board/).
+Zenboard is a team board that makes all of this easier. Read more [here](https://yojava.wordpress.com/2018/01/01/give-your-team-superpowers/).
 
 ## Status
 
