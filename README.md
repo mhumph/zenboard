@@ -16,7 +16,7 @@ Zenboard is a team board that makes all of this easier. Read more [here](https:/
 
 ## Status
 
-Zenboard is currently v0.3. There will be bugs. Archiving is not yet implemented.
+Zenboard is currently v0.4. There will be bugs. Archiving is not yet implemented.
 
 ## Create your own board in 10 minutes
 
@@ -48,7 +48,7 @@ heroku create
 8. Open Zenboard in a browser: `heroku open`
 
 ### More info
-Heroku's "getting started" guide for Node.js [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app).
+Heroku's getting started guide for Node.js is [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app).
 
 ### To host Zenboard elsewhere
 

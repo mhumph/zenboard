@@ -13,7 +13,7 @@ class Core {
 
   /* ROWS *********************************************************************/
 
-  fetchRowsDeep(archived) {
+  fetchRowsDeep(archived, newCardId) {
     if (typeof this === 'undefined') throw new Error("fetchRowsDeep: 'this' is undefined")
 
     archived = (typeof archived === 'undefined') ? false : archived;
@@ -26,7 +26,7 @@ class Core {
           if (results.length === 0) {
             resolve([]);  // No rows, no need to fetch cards
           } else {
-            this.fetchCardsForRows(results).then(function(rows) {
+            this.fetchCardsForRows(results, newCardId).then(function(rows) {
               resolve(rows);
             }, this.rejector);
           }
@@ -35,14 +35,14 @@ class Core {
     });
   }
 
-  fetchCardsForRows(rawRows) {
+  fetchCardsForRows(rawRows, newCardId) {
     return new Promise( (resolve, reject) => {
       this.connectThenQuery('SELECT id, title, row_id, col_id FROM card WHERE is_archived = 0 ORDER BY row_id, col_id, position ASC', (error, results, fields) => {
         if (error) {
           reject(error);
         } else {
           var rows = this.initRows(rawRows);
-          this.mergeCardsIntoRows(rows, results);
+          this.mergeCardsIntoRows(rows, results, newCardId);
           resolve(rows);
         }
       });
@@ -72,7 +72,7 @@ class Core {
     return out;
   }
 
-  mergeCardsIntoRows(rows, cards) {
+  mergeCardsIntoRows(rows, cards, newCardId) {
     for (var i = 0; i < cards.length; i++) {
       var card = cards[i];
       var rowId = card.row_id;
@@ -85,6 +85,10 @@ class Core {
 
         rowCell.cards.push(card);
         row.cells[colId - 1] = rowCell;
+
+        if (colId == newCardId) {
+          card.isNew = true
+        }
       } else {
         if (rowId !== null) {
           console.log('Row not found with id ' + rowId);

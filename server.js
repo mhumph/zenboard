@@ -231,11 +231,12 @@ io.on('connection', function(socket) {
     .then(core.updateDestinationAndSourceCells.bind(core))
     .then(function() {
       // Success
-      emitAction(false, 'card:create', arg, socket);
-      fetchAndEmitRefresh();
+      socket.emit('cardCreate', arg)
+      console.log('cardCreate arg', arg)
+      fetchAndEmitRefresh(arg.id);
     }).catch(function(error) {
       // Error
-      emitAction(error, 'card:create', arg, socket);
+      socket.emit('cardCreateError', error)
     })
   });
 
@@ -243,17 +244,18 @@ io.on('connection', function(socket) {
 
 /* SOCKET.IO HELPERS **********************************************************/
 
-function fetchAndEmitRefresh() {
-  core.fetchRowsDeep(false).then(function(rows) {
-    emitBoardRefresh(rows);
+function fetchAndEmitRefresh(newCardId) {
+  core.fetchRowsDeep(false, newCardId).then(function(rows) {
+    let board = {rows: rows}
+    emitBoardRefresh(board);
   }, function(error) {
     console.log("Error in fetchRowsDeep", error);
   });
 }
 
-function emitBoardRefresh(rows) {
+function emitBoardRefresh(board) {
   console.log("About to emit boardRefresh");
-  io.emit('boardRefresh', rows);
+  io.emit('boardRefresh', board);
 }
 
 /**
