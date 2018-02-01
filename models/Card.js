@@ -1,75 +1,47 @@
 'use strict'
-const ModelUtil  = require('./ModelUtil')
-const PQ  = require('./PromiseQuery')
+const ModelUtil = require('./ModelUtil')
+const PQ = require('./PromiseQuery')
 const debug = require('debug')('zenboard:models:cards');
 
 class Card {
 
   /** @returns {Promise} */
-  static save(card) {
+  static saveCard(card) {
     let sql = 'UPDATE card SET title = ?, description = ?, is_archived = ? WHERE id = ?';
     let sqlArgs = [card.title, card.description, card.isArchived, card.id];
-    //return ModelUtil.promiseQuery.query(sql, sqlArgs);
     return PQ.query(sql, sqlArgs);
   }
 
-  /** @returns {Promise} */
-  static createCard(arg) {
+  /** @returns {Promise} card */
+  static createCard(card) {
     let sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
-    let sqlArgs = [arg.rowId, arg.colId, arg.position, arg.title];
+    let sqlArgs = [card.rowId, card.colId, card.position, card.title];
 
     return PQ.query(sql, sqlArgs, (results) => {
-      arg.id = results.insertId;
-      return arg;
+      card.id = results.insertId;
+      return card;
     })
-
-    // return new Promise( (resolve, reject) => {
-    //   ModelUtil.connectThenQuery(sql, sqlArgs, function (error, results, fields) {
-    //     if (error) {
-    //       reject(error)
-    //     } else {
-    //       arg.id = results.insertId;
-    //       resolve(arg);
-    //     }
-    //   })
-    // })
   }
 
-  /** @returns {Promise} */
+  /** @returns {Promise} card */
   static fetchCardById(id) {
     let sql = 'SELECT * FROM card WHERE id = ?';
     return PQ.query(sql, [id], (results) => {
       return Card.initCard(results);
     });
-
-    // return new Promise( (resolve, reject) => {
-    //   ModelUtil.connectThenQuery(sql, [id], function (error, results, fields) {
-    //     if (error) {
-    //       reject(error);
-    //     } else {
-    //       let card = Card.initCard(results);
-    //       resolve(card);
-    //     }
-    //   });
-    // });
   }
 
   /** 
-   * Adds dataBeforeUpdate prop to arg. 
+   * Adds 'originalData' prop to card (before card gets updated). 
    * @returns {Promise} 
    */
-  static fetchCard(arg) {
+  static fetchCard(card) {
     debug("Entering fetchCard");
-    let selectSql = 'SELECT * FROM card WHERE id = ?';
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery(selectSql, arg.id, (error, dataBeforeUpdate, fields) => {
-        if (error) {
-          reject(error)
-        } else {
-          arg.originalData = dataBeforeUpdate[0]
-          resolve(arg)
-        }
-      });
+    let sql = 'SELECT * FROM card WHERE id = ?';
+
+    return PQ.query(sql, card.id, (results) => {
+      card.originalData = results[0];
+      return card;
     });
   }
 
@@ -90,19 +62,18 @@ class Card {
   }
 
   /** @returns {Promise} */
-  static updateCard(arg) {
-    debug('Entering updateCard', arg);
-    if (!arg) throw Error("arg expected")
+  static updateCard(card) {
+    debug('Entering updateCard', card);
+    if (!card) throw Error("card parameter is falsy");
 
-    let updateSql = 'UPDATE card SET row_id = ?, col_id = ?, position = ? WHERE id = ?';
-    let sqlArgs = [arg.rowId, arg.colId, arg.position, arg.id];
-
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery(updateSql, sqlArgs, (error, results, fields) => {
-        (error) ? reject(error) : resolve(arg);
-      });
+    let sql = 'UPDATE card SET row_id = ?, col_id = ?, position = ? WHERE id = ?';
+    let sqlArgs = [card.rowId, card.colId, card.position, card.id];
+    return PQ.query(sql, sqlArgs, () => {
+      return card;
     });
   }
+
+  /* LOGIC FOR UPDATING CARD POSITIONS ***************************************/
 
   /** @returns {Promise} */
   static updateDestinationAndSourceCells(arg) {
@@ -115,20 +86,21 @@ class Card {
         col_id: arg.colId
       }
     }
-    return new Promise( (resolve, reject) => {
-      Card.updateDestinationCell(arg)
-      .then(Card.updateSourceCell)//.bind(this))
-      .then(resolve)
-      .catch(function(error) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        await Card.updateDestinationCell(arg);
+        await Card.updateSourceCell(arg);
+        resolve();
+      } catch(error) {
         console.error("Error in updateDestinationAndSourceCells", error);
-        reject();
-      });
+        reject(error);
+      }
     });
   }
 
   /**
    * Update position of cards within the destination cell
-   * @param arg.originalData MySql result (queried before updating the moved task)
+   * @param arg.originalData MySql result (queried before updating the moved card)
    * @returns {Promise}
    */
   static updateDestinationCell(arg) {
@@ -152,10 +124,8 @@ class Card {
     }
 
     debug(sql, sqlArgs);
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery(sql, sqlArgs, (error, results, fields) => {
-        (error) ? reject(error) : resolve(arg);
-      });
+    return PQ.query(sql, sqlArgs, () => {
+      return arg;
     });
   }
 
@@ -177,23 +147,22 @@ class Card {
 
       // Move up cards that were below "arg" card
       let sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND id != ?';
+      
       debug(sql, sqlArgs);
-      return new Promise( (resolve, reject) => {
-        ModelUtil.connectThenQuery(sql, sqlArgs, (error, results, fields) => {
-          (error) ? reject(error) : resolve(arg);
-        });
+      return PQ.query(sql, sqlArgs, () => {
+        return arg;
       });
     }
   }
 
-  /** 
-   * TODO:
-   * - Test 
-   * - Order by archive date (instead of created date)
+  /* WORK IN PROGRESS ********************************************************/
+
+  /**
+   * TODO: (1) Test, (2) Order by archive date (instead of created date).
    */
   static fetchArchive() {
     let sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC';
-    return ModelUtil.promiseQuery.query(sql);
+    return PQ.query(sql);
   }
 
 }

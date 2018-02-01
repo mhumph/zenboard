@@ -11,23 +11,9 @@ class ModelUtil {
     return MAX_POSITION;
   }
 
-  static get promiseQuery() {
-    return PromiseQuery;
-  }
-
-  /** arg1 or arg2 should be a callback */
-  static connectThenQuery(sql, arg1, arg2) {
-    let conn = mysql.createConnection(dbConfig);
-    if (typeof arg2 === 'undefined') {
-      conn.query(sql, arg1);
-    } else {
-      conn.query(sql, arg1, arg2);
-    }
-    conn.end(); // Connection will end after query has ended
-  }
-
   /** 
-   * Create schema
+   * Create schema. This enables the schema to be auto-created after Zenboard 
+   * has been freshly installed.
    * @returns {Promise} 
    */
   static initSchema() {
@@ -51,11 +37,8 @@ class ModelUtil {
       });
     });
   }
-
-  static rejector(error) {
-    reject(error);
-  }
   
+  /** Checks if properties exist */
   static rejectIfUndefined(arg, propArray, reject) {
     propArray.forEach(function(prop) {
       if (typeof arg[prop] === 'undefined') {
@@ -64,35 +47,25 @@ class ModelUtil {
     })
   }
 
-}
-
-class PromiseQuery {
-
-  static query(sql, args) {
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery(sql, args, function (error, results, fields) {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results);
-        }
-      });
-    });
+  /** Can be used as a callback */
+  static rejector(error) {
+    reject(error);
   }
 
-  static queryUnique(sql, id) {
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery(sql, id, function (error, results, fields) {
-        if (error) {
-          reject(error);
-        } else {
-          let obj = (results.length >= 1) ? results[0] : {};
-          resolve(obj);
-        }
-      });
-    });
+  /** 
+   * arg1 or arg2 should be a callback 
+   * @deprecated Use PromiseQuery instead. 
+   */
+  static connectThenQuery(sql, arg1, arg2) {
+    let conn = mysql.createConnection(dbConfig);
+    if (typeof arg2 === 'undefined') {
+      conn.query(sql, arg1);
+    } else {
+      conn.query(sql, arg1, arg2);
+    }
+    conn.end(); // Connection will end after query has ended
   }
-  
+
 }
 
 module.exports = ModelUtil;

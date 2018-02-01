@@ -61,15 +61,13 @@ module.exports = function(io) {
     }
   }
 
-  /**
-   * To minimise risk, test rows have a specific (gibberish) title. 
-   */
-  module.deleteTestData = (req, res) => {
-    // TODO: Delete not just rows but cards too
-    const sql = 'DELETE FROM row WHERE title = \'0F65u28Rc66ORYII\' AND id > 0';
-    ModelUtil.connectThenQuery(sql, function (error, results, fields) {
-      RouteUtil.sendArray(res, results, error);
-    });
+  /* This operation can be public - test data is tagged with a specific (gibberish) title  */
+  module.deleteTestData = async (req, res) => {
+    try {
+      await Row.deleteTestRows();
+    } catch (error) {
+      RouteUtil.sendError(response, error);
+    }
   }
 
   /* TODO: Test */

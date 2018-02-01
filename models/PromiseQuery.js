@@ -1,7 +1,5 @@
 /**
  * @example
- * 
-
  try {
   let foo = await PQ.query('select 1 from dual', (results) => {
     return results[0];
@@ -10,9 +8,7 @@
 } catch(error) {
   console.log(error);
 }
-
  */
-
 'use strict';
 let mysql     = require('mysql');
 let dbConfig  = require('../config/db-config').getDbConfig();
@@ -34,30 +30,15 @@ class PromiseQuery {
     });
   }
 
-  static get unique() {
-    return function(error, results, fields) {
-      if (error) {
-        reject(error);
-      } else {
-        if (results.length === 0) {
-          reject("Zero rows returned");
-        } else {
-          resolve(obj);
-        }
-      }
-    }
+  static queryUnique(sql, args) {
+    return new Promise( (resolve, reject) => {
+      let callback = uniqueCallback(resolve, reject)
+      let conn = mysql.createConnection(dbConfig);
+      conn.query(sql, args, callback);
+      conn.end(); // Connection will end after query has ended
+    });
   }
   
-}
-
-function defaultCallback(resolve, reject) {
-  return function(error, results, fields) {
-    if (error) {
-      reject(error);
-    } else {
-      resolve(results);
-    }
-  }
 }
 
 function newCallbackWrapper(callback, resolve, reject) {
@@ -70,6 +51,31 @@ function newCallbackWrapper(callback, resolve, reject) {
         resolve(output);
       } catch (callbackError) {
         reject(callbackError);
+      }
+    }
+  }
+}
+
+function defaultCallback(resolve, reject) {
+  return function(error, results, fields) {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(results);
+    }
+  }
+}
+
+/** For "fetchById" queries */
+function uniqueCallback(resolve, reject) {
+  return function(error, results, fields) {
+    if (error) {
+      reject(error);
+    } else {
+      if (results.length === 0) {
+        reject("Zero rows returned");
+      } else {
+        resolve(results[0]);
       }
     }
   }

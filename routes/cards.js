@@ -15,7 +15,7 @@ module.exports = function(io) {
   module.save = async (req, res) => {
     let body = req.body;
     try {
-      let card = await Card.save(body);
+      let card = await Card.saveCard(body);
       let rows = await Row.fetchRowsDeep(false);
       res.sendStatus(200);
       EventsUtil.emitBoardRefreshWithRows(io, rows);

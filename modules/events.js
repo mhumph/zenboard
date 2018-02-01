@@ -47,8 +47,6 @@ module.exports = function(io) {
 
   });
 
-  /* SOCKET.IO HELPERS **********************************************************/
-
   function fetchAndEmitRefresh(newCardId) {
     Row.fetchRowsDeep(false, newCardId).then(function(rows) {
       Util.emitBoardRefreshWithRows(io, rows);

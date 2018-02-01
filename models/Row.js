@@ -1,5 +1,6 @@
 'use strict'
-let ModelUtil = require('./ModelUtil')
+const ModelUtil = require('./ModelUtil')
+const PQ = require('./PromiseQuery')
 const debug = require('debug')('zenboard:models:rows');
 
 class Row {
@@ -7,13 +8,13 @@ class Row {
   /** @returns {Promise} */
   static fetchById(id) {
     const sql = 'SELECT id, title, position, description, is_archived FROM row WHERE id = ?';
-    return ModelUtil.promiseQuery.queryUnique(sql, id);
+    return PQ.queryUnique(sql, id);
   }
 
   /** @returns {Promise} */
   static fetchAll() {
     const sql = 'SELECT id, title, position FROM row ORDER BY position ASC';
-    return ModelUtil.promiseQuery.query(sql);
+    return PQ.query(sql);
   }
 
   /** @returns {Promise} */
@@ -28,59 +29,52 @@ class Row {
     }
     debug(sql);
 
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery(sql, sqlArgs, (error, results, fields) => {
-        if (error) {
-          reject(error);
-        } else {
-
-          if (results && results.insertId) {
-            row.id = results.insertId;
-          }
-          resolve(row);
-        }
-      });
-    });
+    return PQ.query(sql, sqlArgs, (results) => {
+      if (results && results.insertId) {
+        row.id = results.insertId;
+      }
+      return row;
+    })
   }
 
   /* Fetches everything, using only two queries */
   static fetchRowsDeep(archived, newCardId) {
-    //if (typeof this === 'undefined') throw new Error("fetchRowsDeep: 'this' is undefined")
-
+    let sql = `SELECT id, title, position, description FROM row WHERE is_archived = ?
+      ORDER BY position ASC`;
     archived = (typeof archived === 'undefined') ? false : archived;
-    return new Promise((resolve, reject) => {
-      let sql = 'SELECT id, title, position, description FROM row WHERE is_archived = ? ORDER BY position ASC';
-      ModelUtil.connectThenQuery(sql, [archived], (error, results, fields) => {
-        if (error) {
-          reject(error);
-        } else {
-          if (results.length === 0) {
-            resolve([]);  // No rows, no need to fetch cards
-          } else {
-            Row.fetchCardsForRows(results, newCardId).then(function(rows) {
-              resolve(rows);
-            }, ModelUtil.rejector);
-          }
-        }
-      });
+    
+    return PQ.query(sql, [archived], async (results) => {
+      if (results.length === 0) {
+        return [];  // No rows, no need to fetch cards
+      } else {
+        return await Row.fetchCardsForRows(results, newCardId);
+      }
     });
   }
 
   static fetchCardsForRows(rawRows, newCardId) {
-    return new Promise( (resolve, reject) => {
-      ModelUtil.connectThenQuery('SELECT id, title, row_id, col_id FROM card WHERE is_archived = 0 ORDER BY row_id, col_id, position ASC', (error, results, fields) => {
-        if (error) {
-          reject(error);
-        } else {
-          let rows = Row.initRows(rawRows);
-          Row.mergeCardsIntoRows(rows, results, newCardId);
-          resolve(rows);
-        }
-      });
+    let sql = `SELECT id, title, row_id, col_id FROM card WHERE is_archived = 0
+      ORDER BY row_id, col_id, position ASC`;
+    
+    return PQ.query(sql, false, (results) => {
+      let rows = Row.initRows(rawRows);
+      Row.mergeCardsIntoRows(rows, results, newCardId);
+      return rows;
     });
   }
 
+  /****************************************************************************
+   * Populate rows using data from only two queries (one query for rows, one 
+   * query for cards)
+   ***************************************************************************/
+
+  /** 
+   * Maps SQL results to JS objects.
+   * @returns Array of row objects. Each row object is initialised with empty 
+   * cells.
+   */
   static initRows(rawRows) {
+    const NUM_COLS = 4;
     let out = [];
     for (let i = 0; i < rawRows.length; i++) {
       let rawRow = rawRows[i];
@@ -89,7 +83,7 @@ class Row {
         title: rawRow.title,
         position: rawRow.position,
         description: rawRow.description,
-        cells: new Array(4)
+        cells: new Array(NUM_COLS)
       }
       // Init cells
       for (let j = 0; j < thisRow.cells.length; j++) {
@@ -118,7 +112,7 @@ class Row {
         row.cells[colId - 1] = rowCell;
 
         if (colId == newCardId) {
-          card.isNew = true
+          card.isNew = true;
         }
       } else {
         if (rowId !== null) {
@@ -128,13 +122,20 @@ class Row {
     }
   }
 
-  /** @param {Object} savedRow the row that's been inserted or updated */
+  /***************************************************************************/
+
+  /** 
+   * @param {Object} savedRow the row that's been inserted or updated 
+   * @return {Promise}
+   */
   static updateRowList(savedRow) {
-    return new Promise( (resolve, reject) => {
+    return new Promise( async (resolve, reject) => {
       ModelUtil.rejectIfUndefined(savedRow, ['id', 'position'], reject);
       if (!savedRow.originalPosition) console.warn('WARN: Missing originalPosition');
+
       if (savedRow.position === savedRow.originalPosition) {
         resolve();
+
       } else {
         // REFACTOR: More robust to query original data from DB than to pass it from the UI
         let sqlArgs = [savedRow.position, (savedRow.originalPosition || ModelUtil.MAX_POSITION), savedRow.id];
@@ -145,19 +146,28 @@ class Row {
           // For when row's order is INcreased
           sql = 'UPDATE row SET position = (position - 1) WHERE position <= ? AND position >= ? AND id != ?';
         }
-
         debug(sql, sqlArgs);
-        ModelUtil.connectThenQuery(sql, sqlArgs, (error, results, fields) => {
-          if (error) {
-            reject();
-          } else {
-            resolve();
-          }
-        });
+
+        try {
+          await PQ.query(sql, sqlArgs);
+          resolve();
+        } catch(error) {
+          reject(error);
+        }
       }
     });
   }
 
+  /**
+   * To minimise risk, delete is restricted to rows tagged with a specific 
+   * (gibberish) title. 
+   */
+  static deleteTestRows() {
+    // TODO: Delete not just rows but cards too
+    const sql = 'DELETE FROM row WHERE title = \'0F65u28Rc66ORYII\' AND id > 0';
+    return PQ.query(sql);
+  }
+
 }
 
-module.exports = Row
+module.exports = Row;
