@@ -65,6 +65,7 @@ module.exports = function(io) {
   module.deleteTestData = async (req, res) => {
     try {
       await Row.deleteTestRows();
+      res.send('Done');
     } catch (error) {
       RouteUtil.sendError(response, error);
     }
