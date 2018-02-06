@@ -1,11 +1,11 @@
 /* Video dimensions */
 @media (min-aspect-ratio: 48/27), (aspect-ratio: 48/27) {
   video {
-    width: 100%;
+    width: 100%;    /* Landscape */
   }
 }
 @media (max-aspect-ratio: 48/27) {
   video {
-    height: 100vh;
+    height: 100vh;  /* Portrait */
   }
 }
