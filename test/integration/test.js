@@ -127,24 +127,26 @@ async function moveToCol2(cardToMove, toPosition, titleCheck, positionCheck, src
       colId: 2,
       position: toPosition
     }
-    let originalCardData = await Card.fetchCard(cardArg)
+    //let originalCardData = await Card.fetchCard(cardArg)
+    let originalCard = await Card.fetchCardById(cardArg.id)
     console.log("cardArg", cardArg)
-    assert.equal(cardArg.originalData.title, "0F65u28Rc66ORYII card " + cardToMove);
+    //assert.equal(cardArg.originalData.title, "0F65u28Rc66ORYII card " + cardToMove);
+    assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    await Card.updateCard(cardArg)
+    let updatedCard = await Card.updateCard(cardArg)
     console.log('CARD UPDATED', cardToMove);
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 2);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(originalCardData)
+    await Card.updateDestinationAndSourceCells(updatedCard, originalCard);//originalCardData)
     let col2Cards = await fetchCardsByCol(2)
     let col2Titles = summariseCardTitles(col2Cards)
     let col2Positions = summariseCardPositions(col2Cards)
     assert.equal(col2Titles, titleCheck)
     assert.equal(col2Positions, positionCheck)
 
-    await assertSourcePositions(srcTitleCheck, srcPositionCheck, cardArg.originalData.col_id)
+    await assertSourcePositions(srcTitleCheck, srcPositionCheck, originalCard.colId);//cardArg.originalData.col_id)
   }
   finally {
     await runSqlFile('./test/integration/teardown.sql')
@@ -162,23 +164,23 @@ async function moveToCol3(cardToMove, toPosition, titleCheck, positionCheck, src
       colId: 3,
       position: toPosition
     }
-    let originalCardData = await Card.fetchCard(cardArg)
+    let originalCard = await Card.fetchCardById(cardArg.id)
     console.log("cardArg", cardArg)
-    assert.equal(cardArg.originalData.title, "0F65u28Rc66ORYII card " + cardToMove);
+    assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    await Card.updateCard(cardArg)
+    let updatedCard = await Card.updateCard(cardArg)
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 3);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(originalCardData)
+    await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
     let col3Cards = await fetchCardsByCol(3)
     let col3Titles = summariseCardTitles(col3Cards)
     let col3Positions = summariseCardPositions(col3Cards)
     assert.equal(col3Titles, titleCheck)
     assert.equal(col3Positions, positionCheck)
 
-    await assertSourcePositions(srcTitleCheck, srcPositionCheck, cardArg.originalData.col_id)
+    await assertSourcePositions(srcTitleCheck, srcPositionCheck, originalCard.colId)
   }
   finally {
     await runSqlFile('./test/integration/teardown.sql')
@@ -197,17 +199,17 @@ async function moveToColB2(cardToMove, toPosition, titleCheck, positionCheck, sr
       colId: 2,
       position: toPosition
     }
-    let originalCardData = await Card.fetchCard(cardArg)
+    let originalCard = await Card.fetchCardById(cardArg.id)
     console.log("cardArg", cardArg)
-    assert.equal(cardArg.originalData.title, "0F65u28Rc66ORYII card " + cardToMove);
+    assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    await Card.updateCard(cardArg)
+    let updatedCard = await Card.updateCard(cardArg)
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 2);
     assert.equal(updatedCardData.row_id, rowBData.id);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(originalCardData)
+    await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
     let col2Cards = await fetchCardsByCol(2, '0F65u28Rc66ORYII integration row B')
     let col2Titles = summariseCardTitles(col2Cards)
     let col2Positions = summariseCardPositions(col2Cards)
@@ -233,17 +235,17 @@ async function moveToColB1(cardToMove, toPosition, titleCheck, positionCheck, sr
       colId: 1,
       position: toPosition
     }
-    let originalCardData = await Card.fetchCard(cardArg)
+    let originalCard = await Card.fetchCardById(cardArg.id)
     console.log("cardArg", cardArg)
-    assert.equal(cardArg.originalData.title, "0F65u28Rc66ORYII card " + cardToMove);
+    assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    await Card.updateCard(cardArg)
+    let updatedCard = await Card.updateCard(cardArg)
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 1);
     assert.equal(updatedCardData.row_id, rowBData.id);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(originalCardData)
+    await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
     let col1Cards = await fetchCardsByCol(1, '0F65u28Rc66ORYII integration row B')
     let col1Titles = summariseCardTitles(col1Cards)
     let col1Positions = summariseCardPositions(col1Cards)

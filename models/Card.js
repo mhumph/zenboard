@@ -23,6 +23,14 @@ class Card {
     })
   }
 
+  /** @returns Updated card */
+  static async moveCard(card) {
+    // TODO: Abort if card moved to it's original position
+    const originalCard = await Card.fetchCardById(card.id)
+    const updatedCard = await Card.updateCard(card)
+    return await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
+  }
+
   /** @returns {Promise} card */
   static fetchCardById(id) {
     let sql = 'SELECT * FROM card WHERE id = ?';
@@ -31,19 +39,19 @@ class Card {
     });
   }
 
-  /** 
-   * Adds 'originalData' prop to card (before card gets updated). 
-   * @returns {Promise} 
-   */
-  static fetchCard(card) {
-    debug("Entering fetchCard");
-    let sql = 'SELECT * FROM card WHERE id = ?';
+  // /** 
+  //  * Adds 'originalData' prop to card (before card gets updated). 
+  //  * @returns {Promise} 
+  //  */
+  // static fetchCard(card) {
+  //   debug("Entering fetchCard");
+  //   let sql = 'SELECT * FROM card WHERE id = ?';
 
-    return PQ.query(sql, card.id, (results) => {
-      card.originalData = results[0];
-      return card;
-    });
-  }
+  //   return PQ.query(sql, card.id, (results) => {
+  //     card.originalData = results[0];
+  //     return card;
+  //   });
+  // }
 
   /** Map from SQL result to JS object */
   static initCard(results) {
@@ -76,8 +84,15 @@ class Card {
   /* LOGIC FOR UPDATING CARD POSITIONS ***************************************/
 
   /** @returns {Promise} */
-  static updateDestinationAndSourceCells(arg) {
+  static updateDestinationAndSourceCells(arg, originalCard) {
     debug("Entering updateDestinationAndSourceCells");
+    if (originalCard) {
+      arg.originalData = {
+        position: originalCard.position,
+        row_id: originalCard.rowId,
+        col_id: originalCard.colId
+      }
+    }
     // If no originalData provided then assume it's a new card
     if (!arg.originalData) {
       arg.originalData = {
@@ -103,7 +118,7 @@ class Card {
    * @param arg.originalData MySql result (queried before updating the moved card)
    * @returns {Promise}
    */
-  static updateDestinationCell(arg) {
+  static updateDestinationCell(arg, originalCard) {
     debug("Entering updateDestinationCell");
 
     let originalData = arg.originalData;
@@ -133,7 +148,7 @@ class Card {
    * Update position of cards within the source cell
    * @param arg.originalData MySql result (queried before updating the moved task)
    */
-  static updateSourceCell(arg) {
+  static updateSourceCell(arg, originalCard) {
     debug("Entering updateSourceCell");
 
     let originalData = arg.originalData;

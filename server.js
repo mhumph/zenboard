@@ -58,6 +58,10 @@ app.get('/api/archive/rows/deep', rows.fetchArchiveDeep);
 
 app.post('/api/cards/save', jsonParser, cards.save);
 
+app.post('/api/cards/move', jsonParser, cards.move);
+
+app.post('/api/cards/create', jsonParser, cards.create);
+
 app.get('/api/cards/:id', cards.fetchById);
 
 app.get('/api/archive/cards/', cards.fetchArchive);

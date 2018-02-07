@@ -4,7 +4,6 @@
 'use strict';
 const Card = require('../models/Card');
 const Row = require('../models/Row');
-//const ModelUtil = require('../models/ModelUtil');
 const RouteUtil = require('./RouteUtil')
 const EventsUtil = require('../modules/EventsUtil');
 const debug = require('debug')('zenboard:routes:cards');
@@ -16,8 +15,9 @@ module.exports = function(io) {
     let body = req.body;
     try {
       let card = await Card.saveCard(body);
-      let rows = await Row.fetchRowsDeep(false);
       res.sendStatus(200);
+
+      let rows = await Row.fetchRowsDeep(false);
       EventsUtil.emitBoardRefreshWithRows(io, rows);
     } catch (error) {
       RouteUtil.sendError(res, error, 'Error in fetchRowsDeep');
@@ -28,6 +28,33 @@ module.exports = function(io) {
     try {
       let card = await Card.fetchCardById(req.params.id);
       res.send(card);
+    } catch(error) {
+      RouteUtil.sendError(res, error);
+    }
+  }
+
+  module.move = async (req, res) => {
+    let body = req.body;
+    try {
+      const card = await Card.moveCard(body);
+      res.sendStatus(200);
+
+      const rows = await Row.fetchRowsDeep();
+      EventsUtil.emitBoardRefreshWithRows(io, rows);
+    } catch(error) {
+      RouteUtil.sendError(res, error);
+    }
+  }
+
+  module.create = async (req, res) => {
+    let body = req.body;
+    try {
+      const card = await Card.createCard(body);
+      await Card.updateDestinationAndSourceCells(card);
+      res.sendStatus(200);
+
+      const rows = await Row.fetchRowsDeep();
+      EventsUtil.emitBoardRefreshWithRows(io, rows);
     } catch(error) {
       RouteUtil.sendError(res, error);
     }
