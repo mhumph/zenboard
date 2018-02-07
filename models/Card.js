@@ -39,20 +39,6 @@ class Card {
     });
   }
 
-  // /** 
-  //  * Adds 'originalData' prop to card (before card gets updated). 
-  //  * @returns {Promise} 
-  //  */
-  // static fetchCard(card) {
-  //   debug("Entering fetchCard");
-  //   let sql = 'SELECT * FROM card WHERE id = ?';
-
-  //   return PQ.query(sql, card.id, (results) => {
-  //     card.originalData = results[0];
-  //     return card;
-  //   });
-  // }
-
   /** Map from SQL result to JS object */
   static initCard(results) {
     if (results.length < 1) return false;
@@ -81,30 +67,23 @@ class Card {
     });
   }
 
-  /* LOGIC FOR UPDATING CARD POSITIONS ***************************************/
+  /* LOGIC FOR UPDATING THE POSITION OF OTHER CARDS **************************/
 
   /** @returns {Promise} */
-  static updateDestinationAndSourceCells(arg, originalCard) {
+  static updateDestinationAndSourceCells(updatedCard, originalCard) {
     debug("Entering updateDestinationAndSourceCells");
-    if (originalCard) {
-      arg.originalData = {
-        position: originalCard.position,
-        row_id: originalCard.rowId,
-        col_id: originalCard.colId
-      }
-    }
     // If no originalData provided then assume it's a new card
-    if (!arg.originalData) {
-      arg.originalData = {
+    if (!originalCard) {
+      originalCard = {
         position: ModelUtil.MAX_POSITION, // We don't want sibling cards re-ordered
-        row_id: arg.rowId,
-        col_id: arg.colId
+        rowId: updatedCard.rowId,
+        colId: updatedCard.colId
       }
     }
     return new Promise( async (resolve, reject) => {
       try {
-        await Card.updateDestinationCell(arg);
-        await Card.updateSourceCell(arg);
+        await Card.updateDestinationCell(updatedCard, originalCard);
+        await Card.updateSourceCell(updatedCard, originalCard);
         resolve();
       } catch(error) {
         console.error("Error in updateDestinationAndSourceCells", error);
@@ -115,58 +94,51 @@ class Card {
 
   /**
    * Update position of cards within the destination cell
-   * @param arg.originalData MySql result (queried before updating the moved card)
+   * @param originalCard Card details prior to update
    * @returns {Promise}
    */
-  static updateDestinationCell(arg, originalCard) {
+  static updateDestinationCell(card, originalCard) {
     debug("Entering updateDestinationCell");
 
-    let originalData = arg.originalData;
-    let originalPosition = originalData.position;
+    let originalPosition = originalCard.position;
     // If the card has moved cell, then we want to update all card's in the cell with a bigger position
-    if ((arg.rowId != originalData.row_id) || (arg.colId != originalData.col_id)) {
+    if ((card.rowId != originalCard.rowId) || (card.colId != originalCard.colId)) {
       originalPosition = ModelUtil.MAX_POSITION;
     }
-    let sqlArgs = [arg.rowId, arg.colId, arg.position, originalPosition, arg.id];
+    let sqlArgs = [card.rowId, card.colId, card.position, originalPosition, card.id];
 
-    // Default SQL for when tasks is added to a cell (or it's order is DEcreased within a cell)
+    // Default SQL for when card is added to a cell (or it's order is DEcreased within a cell)
     let sql = 'UPDATE card SET position = (position + 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND position <= ? AND id != ?';
 
-    // Check if the task has been moved within a cell, and it's order has INcreased
-    if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id)
-        && (arg.position > originalData.position)) {
+    // Check if the card has been moved within a cell, and it's order has INcreased
+    if ((card.rowId == originalCard.rowId) && (card.colId == originalCard.colId)
+        && (card.position > originalCard.position)) {
       sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position <= ? AND position >= ? AND id != ?';
     }
 
     debug(sql, sqlArgs);
-    return PQ.query(sql, sqlArgs, () => {
-      return arg;
-    });
+    return PQ.query(sql, sqlArgs);
   }
 
   /**
    * Update position of cards within the source cell
-   * @param arg.originalData MySql result (queried before updating the moved task)
+   * @param originalCard Card details prior to update
    */
-  static updateSourceCell(arg, originalCard) {
+  static updateSourceCell(card, originalCard) {
     debug("Entering updateSourceCell");
 
-    let originalData = arg.originalData;
-
     // If source cell and destination cell are the same then we don't need to do anything
-    if ((arg.rowId == originalData.row_id) && (arg.colId == originalData.col_id)) {
-      return Promise.resolve(arg);
+    if ((card.rowId == originalCard.rowId) && (card.colId == originalCard.colId)) {
+      return Promise.resolve(card);
 
     } else {
-      let sqlArgs = [originalData.row_id, originalData.col_id, originalData.position, arg.id];
+      let sqlArgs = [originalCard.rowId, originalCard.colId, originalCard.position, card.id];
 
-      // Move up cards that were below "arg" card
+      // Move up cards that were below <code>card</code>
       let sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND id != ?';
       
       debug(sql, sqlArgs);
-      return PQ.query(sql, sqlArgs, () => {
-        return arg;
-      });
+      return PQ.query(sql, sqlArgs);
     }
   }
 

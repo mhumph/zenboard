@@ -1,7 +1,6 @@
 let mysql       = require('mysql');
 let assert      = require('assert');
 let requireChai = require('chai');
-//let core        = require('../../core');
 let dbConfig    = require('../../config/db-config').getDbConfig();
 let Card        = require('../../models/Card');
 let Row         = require('../../models/Row');
@@ -127,10 +126,8 @@ async function moveToCol2(cardToMove, toPosition, titleCheck, positionCheck, src
       colId: 2,
       position: toPosition
     }
-    //let originalCardData = await Card.fetchCard(cardArg)
     let originalCard = await Card.fetchCardById(cardArg.id)
     console.log("cardArg", cardArg)
-    //assert.equal(cardArg.originalData.title, "0F65u28Rc66ORYII card " + cardToMove);
     assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
     let updatedCard = await Card.updateCard(cardArg)
