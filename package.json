@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node ./bin/www",
-    "startheroku": "node server.js",
+    "heroku.local": "DEBUG=zenboard:* PORT=3001 heroku local",
+    "archive.heroku.remote": "node server.js",
     "test": "mocha test/integration/cardTest.js test/integration/cardMoveTest.js"
   },
   "dependencies": {
