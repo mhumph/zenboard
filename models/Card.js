@@ -2,11 +2,32 @@
 const ModelUtil = require('./ModelUtil')
 const PQ = require('./PromiseQuery')
 const debug = require('debug')('zenboard:models:cards');
+const Joi = require('joi');
+
+const schemaForSave = Joi.object().keys({ // Via card editor
+  id: Joi.number().integer().min(0).required(),
+  title: Joi.string(),
+  description: Joi.string().allow(null),
+  isArchived: Joi.boolean()
+}).unknown(true);
+const schemaForCreate = Joi.object().keys({ // Via "Add card"
+  rowId: Joi.number().integer().min(0).required(),
+  colId: Joi.number().integer().min(0).required(),
+  position: Joi.number().integer().min(0).required(),
+  title: Joi.string().required()
+}).unknown(true);
+const schemaForMove = Joi.object().keys({ // Via drag and drop
+  id: Joi.number().integer().min(0).required(),
+  rowId: Joi.number().integer().min(0).required(),
+  colId: Joi.number().integer().min(0).required(),
+  position: Joi.number().integer().min(0).required()
+}).unknown(true);
 
 class Card {
 
   /** @returns {Promise} */
   static saveCard(card) {
+    Joi.assert(card, schemaForSave, {allowUnknown: true});
     let sql = 'UPDATE card SET title = ?, description = ?, is_archived = ? WHERE id = ?';
     let sqlArgs = [card.title, card.description, card.isArchived, card.id];
     return PQ.query(sql, sqlArgs);
@@ -14,6 +35,7 @@ class Card {
 
   /** @returns {Promise} card */
   static createCard(card) {
+    Joi.assert(card, schemaForCreate, {allowUnknown: true});
     let sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
     let sqlArgs = [card.rowId, card.colId, card.position, card.title];
 
@@ -25,6 +47,7 @@ class Card {
 
   /** @returns Updated card */
   static async moveCard(card) {
+    Joi.assert(card, schemaForMove, {allowUnknown: true});
     // TODO: Abort if card moved to it's original position
     const originalCard = await Card.fetchCardById(card.id)
     const updatedCard = await Card.updateCard(card)
@@ -38,6 +61,8 @@ class Card {
       return Card.initCard(results);
     });
   }
+
+  /* FOR "PRIVATE" USE *******************************************************/
 
   /** Map from SQL result to JS object */
   static initCard(results) {

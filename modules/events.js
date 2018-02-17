@@ -11,39 +11,10 @@ module.exports = function(io) {
 
   io.on('connection', function(socket) {
 
-    /* XXX: Make this an Ajax POST */
-    socket.on('card:move', function(arg) {
-      debug('card:move', arg);
+    // You can respond to socket events here e.g.
+    // socket.on('foo', function(arg) { console.log('foo'); } );
 
-      // TODO: Abort if card moved to it's original position
-      Card.fetchCard(arg)
-      .then(Card.updateCard)
-      .then(Card.updateDestinationAndSourceCells)
-      .then(function() {
-        // Success
-        emitAction(false, 'card:move', arg, socket);
-        fetchAndEmitRefresh();
-      }).catch(function(error) {
-        // Error
-        emitAction(error, 'card:move', arg, socket);
-      });
-    });
-
-    /* XXX: Make this an Ajax POST */
-    socket.on('card:create', function(arg) {
-      debug('card:create', arg);
-
-      Card.createCard(arg)
-      .then(Card.updateDestinationAndSourceCells)
-      .then(function() {
-        // Success
-        socket.emit('cardCreate', arg)
-        fetchAndEmitRefresh(arg.id);
-      }).catch(function(error) {
-        // Error
-        socket.emit('cardCreateError', error)
-      })
-    });
+    // Our io mainly broadcasts board updates (triggered by AJAX POSTs)
 
   });
 

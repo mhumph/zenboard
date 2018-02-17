@@ -1,7 +1,7 @@
 /**
  * @example
  try {
-  let foo = await PQ.query('select 1 from dual', (results) => {
+  let firstCard = await PQ.query('select * from card', (results) => {
     return results[0];
   });
   console.log(foo);

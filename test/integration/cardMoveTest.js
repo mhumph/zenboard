@@ -6,8 +6,6 @@ let Card        = require('../../models/Card');
 let Row         = require('../../models/Row');
 let fs          = require('fs');
 
-// TODO: Test "create new card"!
-
 // Cols 1 and 2 each have 3 cards
 describe('Moving a card from col 1 to col 2', function() {
   it('From top of col 1 to top of col 2', async function() {

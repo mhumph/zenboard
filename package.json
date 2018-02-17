@@ -7,13 +7,15 @@
     "node": ">=8.9.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "test": "mocha test/integration/test.js"
+    "start": "node ./bin/www",
+    "startheroku": "node server.js",
+    "test": "mocha test/integration/cardTest.js test/integration/cardMoveTest.js"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
     "debug": "^3.1.0",
     "express": "^4.10.2",
+    "joi": "13.1.2",
     "minimist": "*",
     "morgan": "^1.9.0",
     "mysql": "^2.13.0",
@@ -21,6 +23,6 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^4.0.1"
+    "mocha": "4.1.0"
   }
 }

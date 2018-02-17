@@ -20,7 +20,7 @@ module.exports = function(io) {
       let rows = await Row.fetchRowsDeep(false);
       EventsUtil.emitBoardRefreshWithRows(io, rows);
     } catch (error) {
-      RouteUtil.sendError(res, error, 'Error in fetchRowsDeep');
+      RouteUtil.sendError(res, error, 'Error saving card');
     }
   }
 
@@ -48,6 +48,7 @@ module.exports = function(io) {
 
   module.create = async (req, res) => {
     let body = req.body;
+
     try {
       const card = await Card.createCard(body);
       await Card.updateDestinationAndSourceCells(card);
@@ -55,6 +56,7 @@ module.exports = function(io) {
 
       const rows = await Row.fetchRowsDeep();
       EventsUtil.emitBoardRefreshWithRows(io, rows);
+      io.emit('cardCreate', card);
     } catch(error) {
       RouteUtil.sendError(res, error);
     }
