@@ -4,8 +4,8 @@
 'use strict';
 const Card = require('../models/Card');
 const Row = require('../models/Row');
-const RouteUtil = require('./RouteUtil')
-const EventsUtil = require('../modules/EventsUtil');
+const RouteUtil = require('../lib/web/RouteUtil')
+const EventsUtil = require('../lib/events/EventsUtil');
 const debug = require('debug')('zenboard:routes:cards');
 
 module.exports = function(io) {

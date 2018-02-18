@@ -1,6 +1,6 @@
 'use strict'
-const ModelUtil = require('./ModelUtil');
-const PQ = require('./PromiseQuery');
+const ModelUtil = require('../lib/model/ModelUtil');
+const PQ = require('../lib/model/PromiseQuery');
 const debug = require('debug')('zenboard:models:cards');
 const Joi = require('joi');
 

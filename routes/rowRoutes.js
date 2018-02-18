@@ -3,21 +3,21 @@
  */
 'use strict';
 const Row = require('../models/Row');
-const ModelUtil = require('../models/ModelUtil');
-const RouteUtil = require('./RouteUtil');
-const EventsUtil = require('../modules/EventsUtil');
+const ModelUtil = require('../lib/model/ModelUtil');
+const RouteUtil = require('../lib/web/RouteUtil');
+const EventsUtil = require('../lib/events/EventsUtil');
 const debug = require('debug')('zenboard:routes:rows');
 
 module.exports = function(io) {
-  let module = {};
+  const module = {};
 
   module.save = async (req, res) => {
-    let row = req.body;
+    const row = req.body;
     try {
       await Row.save(row);
       await Row.updateRowList(row);
 
-      let rows = await Row.fetchRowsDeep();
+      const rows = await Row.fetchRowsDeep();
       res.sendStatus(200);
       EventsUtil.emitBoardRefreshWithRows(io, rows);
 
@@ -28,7 +28,7 @@ module.exports = function(io) {
 
   module.fetchById = async (req, res) => {
     try {
-      let row = await Row.fetchById(req.params.id);
+      const row = await Row.fetchById(req.params.id);
       res.send(row);
     } catch(error) {
       RouteUtil.sendError(res, error);
@@ -37,7 +37,7 @@ module.exports = function(io) {
 
   module.fetchAll = async (req, res) => {
     try {
-      let rows = await Row.fetchAll();
+      const rows = await Row.fetchAll();
       res.send(rows);
     } catch (error) {
       RouteUtil.sendError(res, error);
@@ -48,7 +48,7 @@ module.exports = function(io) {
   module.fetchAllDeep = async (req, res, next) => {
     try {
       // TODO: Handle "no rows" scenario
-      let rows = await Row.fetchRowsDeep();
+      const rows = await Row.fetchRowsDeep();
       res.send(rows);
 
     } catch(error) {      
@@ -74,7 +74,7 @@ module.exports = function(io) {
   /* TODO: Test */
   module.fetchArchiveDeep = async (req, response) => {
     try {
-      let rows = await Row.fetchRowsDeep(true);
+      const rows = await Row.fetchRowsDeep(true);
       response.send(rows);
     } catch (error) {
       RouteUtil.sendError(response, error);
@@ -84,7 +84,7 @@ module.exports = function(io) {
   async function initSchema(response, next) {
     try {
       await ModelUtil.initSchema();
-      let rows = await Row.fetchRowsDeep()
+      const rows = await Row.fetchRowsDeep()
       response.send(rows);
     } catch(error) {
       next(error);
