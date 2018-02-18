@@ -9,16 +9,16 @@ const EventsUtil = require('../modules/EventsUtil');
 const debug = require('debug')('zenboard:routes:cards');
 
 module.exports = function(io) {
-  let module = {};
+  const module = {};
 
   module.save = async (req, res) => {
-    let body = req.body;
+    const body = req.body;
     try {
-      let card = new Card(body);
+      const card = new Card(body);
       await card.save();
       res.sendStatus(200);
 
-      let rows = await Row.fetchRowsDeep(false);
+      const rows = await Row.fetchRowsDeep(false);
       EventsUtil.emitBoardRefreshWithRows(io, rows);
     } catch (error) {
       RouteUtil.sendError(res, error, 'Error saving card');
@@ -27,7 +27,7 @@ module.exports = function(io) {
 
   module.fetchById = async (req, res) => {
     try {
-      let card = await Card.fetchById(req.params.id);
+      const card = await Card.fetchById(req.params.id);
       res.send(card);
     } catch(error) {
       RouteUtil.sendError(res, error);
@@ -35,7 +35,7 @@ module.exports = function(io) {
   }
 
   module.move = async (req, res) => {
-    let body = req.body;
+    const body = req.body;
     try {
       const card = new Card(body);
       await card.move();
@@ -49,7 +49,7 @@ module.exports = function(io) {
   }
 
   module.create = async (req, res) => {
-    let body = req.body;
+    const body = req.body;
 
     try {
       const card = new Card(body);
@@ -68,7 +68,7 @@ module.exports = function(io) {
   /** TODO: Test */
   module.fetchArchive = async (req, res) => {
     try {
-      let archivedCards = await Card.fetchArchive();
+      const archivedCards = await Card.fetchArchive();
       RouteUtil.sendArray(res, archivedRows);
     } catch(error) {
       RouteUtil.sendError(res, error);

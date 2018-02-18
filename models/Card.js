@@ -132,7 +132,7 @@ class CardMover {
   static updateDestinationCell(card, originalCard) {
     debug("Entering updateDestinationCell");
 
-    const originalPosition = originalCard.position;
+    let originalPosition = originalCard.position;
     // If the card has moved cell, then we want to update all card's in the cell with a bigger position
     if ((card.rowId != originalCard.rowId) || (card.colId != originalCard.colId)) {
       originalPosition = ModelUtil.MAX_POSITION;
