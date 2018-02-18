@@ -14,7 +14,8 @@ module.exports = function(io) {
   module.save = async (req, res) => {
     let body = req.body;
     try {
-      let card = await Card.saveCard(body);
+      let card = new Card(body);
+      await card.save();
       res.sendStatus(200);
 
       let rows = await Row.fetchRowsDeep(false);
@@ -26,7 +27,7 @@ module.exports = function(io) {
 
   module.fetchById = async (req, res) => {
     try {
-      let card = await Card.fetchCardById(req.params.id);
+      let card = await Card.fetchById(req.params.id);
       res.send(card);
     } catch(error) {
       RouteUtil.sendError(res, error);
@@ -36,7 +37,8 @@ module.exports = function(io) {
   module.move = async (req, res) => {
     let body = req.body;
     try {
-      const card = await Card.moveCard(body);
+      const card = new Card(body);
+      await card.move();
       res.sendStatus(200);
 
       const rows = await Row.fetchRowsDeep();
@@ -50,8 +52,9 @@ module.exports = function(io) {
     let body = req.body;
 
     try {
-      const card = await Card.createCard(body);
-      await Card.updateDestinationAndSourceCells(card);
+      const card = new Card(body);
+      await card.create();
+      await card.updateDestinationAndSourceCells();
       res.sendStatus(200);
 
       const rows = await Row.fetchRowsDeep();

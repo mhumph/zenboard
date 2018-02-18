@@ -1,4 +1,4 @@
-/** @file Express middleware */
+/** @file Custom middleware for Express */
 'use strict';
 
 class Middleware {

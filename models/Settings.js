@@ -3,22 +3,23 @@ const ModelUtil  = require('./ModelUtil')
 const PQ = require('./PromiseQuery')
 const debug = require('debug')('zenboard:models:settings');
 
-class Setting {
+/**
+ * Currently only one board. It has id 1.
+ */
+class Settings {
 
   /** @returns {Promise} */
-  static save(card) {
-    foo = 1;
-    let sql = 'UPDATE card SET title = ?, description = ?, is_archived = ? WHERE id = ?';
-    let sqlArgs = [card.title, card.description, card.isArchived, card.id];
+  static save(title) {
+    let sql = 'UPDATE board SET title = ? WHERE id = 1';
+    let sqlArgs = [title];
     return PQ.query(sql, sqlArgs);
   }
 
   /** @returns {Promise} */
   static fetch() {
-    // Currently only one board (and it has id = 1)
     let sql = 'SELECT title FROM board WHERE id = 1';
     return PQ.queryUnique(sql);
   }
 }
 
-module.exports = Setting
+module.exports = Settings

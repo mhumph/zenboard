@@ -1,7 +1,6 @@
 /** 
  * This module manages Socket.io events
  */
-const Card = require('../models/Card');
 const Row = require('../models/Row');
 const Util = require('./EventsUtil');
 const debug = require('debug')('zenboard:events');

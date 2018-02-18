@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const app = require('../app');
+const app   = require('../app');
 const debug = require('debug')('zenboard:server');
-const http = require('http');
+const http  = require('http');
 
 /**
  * Create HTTP server.

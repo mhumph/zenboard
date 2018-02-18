@@ -3,7 +3,7 @@
  */
 'use strict';
 const RouteUtil = require('./RouteUtil')
-const Setting = require('../models/Setting')
+const Settings = require('../models/Settings')
 const debug = require('debug')('zenboard:routes:settings');
 
 module.exports = function(io) {
@@ -11,7 +11,7 @@ module.exports = function(io) {
 
   module.fetchAll = async (request, response) => {
     try {
-      let settings = await Setting.fetch();
+      let settings = await Settings.fetch();
       RouteUtil.sendArray(response, settings);
     } catch(error) {
       RouteUtil.sendError(response, error);
@@ -21,7 +21,7 @@ module.exports = function(io) {
   module.saveTitle = async (request, response) => {
     let title = request.body.title;
     try {
-      let result = await Setting.save(title);
+      let result = await Settings.save(title);
       RouteUtil.sendObject(response, result);
     } catch(error) {
       RouteUtil.sendError(response, error);

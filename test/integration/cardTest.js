@@ -2,7 +2,7 @@ let mysql       = require('mysql');
 let assert      = require('assert');
 let requireChai = require('chai');
 let dbConfig    = require('../../config/db-config').getDbConfig();
-let Card        = require('../../models/Card');
+let CardModel   = require('../../models/Card');
 let fs          = require('fs');
 
 // Moving a card is more complicated and has separate tests (cardMoveTest.js)
@@ -17,7 +17,7 @@ describe('Card', function() {
     await runSqlFile('./test/integration/teardown.sql')
   })
 
-  it('Save', async function() {
+  it('Save model', async function() {
     const cardData = await fetchCardByTag('1,1');
     const cardUpdate = {
       id: cardData.id,
@@ -26,53 +26,54 @@ describe('Card', function() {
       isArchived: false,
       someDummyKey: 'blah'
     }
-    await Card.saveCard(cardUpdate);
+    const card = new CardModel(cardUpdate);
+    await card.save();
 
-    const savedCard = await Card.fetchCardById(cardData.id);
+    const savedCard = await CardModel.fetchById(cardData.id);
     assert.equal(savedCard.title, 'my title');
     assert.equal(savedCard.description, 'my desc');
     assert.equal(savedCard.isArchived, false);
   });
 
-  it('Save error', async function() {
-    const cardWithoutId = {
-      title: 'my title',
-      description: 'my desc',
-      isArchived: false
-    }
-    const err = await truthyIfThrows(() => {
-      Card.saveCard(cardWithoutId);
+  it('Save model error', async function() {
+    const card = new CardModel(); // Has no id!
+    card.title = 'my title';
+    card.description = 'my desc';
+    card.isArchived = false;
+
+    const err = await truthyIfThrows(() => {  
+      card.save();
     });
     assert.ok(err);
   });
 
-  it('Create', async function() {
+  it('Create model', async function() {
     const cardData = await fetchCardByTag('1,1');
-    const card = {
+    const card = new CardModel({
       title: 'my title',
       rowId: cardData.row_id,
       colId: cardData.col_id,
       position: 1,
       someDummyKey: 'blah'
-    }
-    await Card.createCard(card);
+    });
+    await card.create();
 
-    const savedCard = await Card.fetchCardById(card.id);
+    const savedCard = await CardModel.fetchById(card.id);
     assert.equal(savedCard.title, 'my title');
     assert.equal(savedCard.rowId, cardData.row_id);
     assert.equal(savedCard.colId, cardData.col_id);
     assert.equal(savedCard.position, 1);
   });
 
-  it('Create error', async function() {
+  it('Create model error', async function() {
     const cardData = await fetchCardByTag('1,1');
-    const badCard = { // No position
+    const badCard = new CardModel({ // No position
       title: 'Blah',
       rowId: cardData.row_id,
       colId: 3,
-    }
+    });
     const err = await truthyIfThrows(() => {
-      Card.createCard(badCard);
+      badCard.create();
     });
     assert.ok(err);
   });

@@ -38,7 +38,7 @@ class ModelUtil {
     });
   }
   
-  /** Checks if properties exist */
+  /** Checks if properties exist. Deprecated in favour of Joi. */
   static rejectIfUndefined(arg, propArray, reject) {
     propArray.forEach(function(prop) {
       if (typeof arg[prop] === 'undefined') {

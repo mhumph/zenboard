@@ -1,74 +1,70 @@
 'use strict'
-const ModelUtil = require('./ModelUtil')
-const PQ = require('./PromiseQuery')
+const ModelUtil = require('./ModelUtil');
+const PQ = require('./PromiseQuery');
 const debug = require('debug')('zenboard:models:cards');
 const Joi = require('joi');
 
-const schemaForSave = Joi.object().keys({ // Via card editor
-  id: Joi.number().integer().min(0).required(),
-  title: Joi.string(),
-  description: Joi.string().allow(null),
-  isArchived: Joi.boolean()
-}).unknown(true);
-const schemaForCreate = Joi.object().keys({ // Via "Add card"
-  rowId: Joi.number().integer().min(0).required(),
-  colId: Joi.number().integer().min(0).required(),
-  position: Joi.number().integer().min(0).required(),
-  title: Joi.string().required()
-}).unknown(true);
-const schemaForMove = Joi.object().keys({ // Via drag and drop
-  id: Joi.number().integer().min(0).required(),
-  rowId: Joi.number().integer().min(0).required(),
-  colId: Joi.number().integer().min(0).required(),
-  position: Joi.number().integer().min(0).required()
-}).unknown(true);
-
 class Card {
 
+  constructor(obj) {
+    if (typeof obj === 'object') {
+      this.id = obj.id;
+      this.title = obj.title;
+      this.rowId = obj.rowId;
+      this.colId = obj.colId;
+      this.position = obj.position;
+      this.description = obj.description;
+      this.isArchived = obj.isArchived;
+    }
+  }
+
+  static fromRecord(cardRecord) {
+    return new Card(Card.sqlToJs(cardRecord));
+  }
+
   /** @returns {Promise} */
-  static saveCard(card) {
-    Joi.assert(card, schemaForSave, {allowUnknown: true});
-    let sql = 'UPDATE card SET title = ?, description = ?, is_archived = ? WHERE id = ?';
-    let sqlArgs = [card.title, card.description, card.isArchived, card.id];
+  save() {
+    Joi.assert(this, schemaForSave, {allowUnknown: true});
+    const sql = 'UPDATE card SET title = ?, description = ?, is_archived = ? WHERE id = ?';
+    const sqlArgs = [this.title, this.description, this.isArchived, this.id];
     return PQ.query(sql, sqlArgs);
   }
 
   /** @returns {Promise} card */
-  static createCard(card) {
-    Joi.assert(card, schemaForCreate, {allowUnknown: true});
-    let sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
-    let sqlArgs = [card.rowId, card.colId, card.position, card.title];
+  create() {
+    Joi.assert(this, schemaForCreate, {allowUnknown: true});
+    const sql = 'INSERT INTO card (row_id, col_id, position, title) VALUES (?, ?, ?, ?)';
+    const sqlArgs = [this.rowId, this.colId, this.position, this.title];
 
     return PQ.query(sql, sqlArgs, (results) => {
-      card.id = results.insertId;
-      return card;
+      this.id = results.insertId;
     })
   }
 
   /** @returns Updated card */
-  static async moveCard(card) {
-    Joi.assert(card, schemaForMove, {allowUnknown: true});
+  async move() {
+    Joi.assert(this, schemaForMove, {allowUnknown: true});
     // TODO: Abort if card moved to it's original position
-    const originalCard = await Card.fetchCardById(card.id)
-    const updatedCard = await Card.updateCard(card)
-    return await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
+    const originalCard = await Card.fetchById(this.id);
+    await this.updatePosition();
+    return await this.updateDestinationAndSourceCells(originalCard);
   }
 
   /** @returns {Promise} card */
-  static fetchCardById(id) {
-    let sql = 'SELECT * FROM card WHERE id = ?';
+  static fetchById(id) {
+    const sql = 'SELECT * FROM card WHERE id = ?';
     return PQ.query(sql, [id], (results) => {
-      return Card.initCard(results);
+      return Card.fromRecord(results);
     });
   }
 
   /* FOR "PRIVATE" USE *******************************************************/
 
   /** Map from SQL result to JS object */
-  static initCard(results) {
+  static sqlToJs(results) {
     if (results.length < 1) return false;
-    let data = results[0];
-    let card = {
+    const data = results[0];
+    const card = {
       id: data.id,
       title: data.title,
       rowId: data.row_id,
@@ -81,21 +77,15 @@ class Card {
   }
 
   /** @returns {Promise} */
-  static updateCard(card) {
-    debug('Entering updateCard', card);
-    if (!card) throw Error("card parameter is falsy");
-
-    let sql = 'UPDATE card SET row_id = ?, col_id = ?, position = ? WHERE id = ?';
-    let sqlArgs = [card.rowId, card.colId, card.position, card.id];
-    return PQ.query(sql, sqlArgs, () => {
-      return card;
-    });
+  updatePosition() {
+    debug('Entering updateCard', this);
+    const sql = 'UPDATE card SET row_id = ?, col_id = ?, position = ? WHERE id = ?';
+    const sqlArgs = [this.rowId, this.colId, this.position, this.id];
+    return PQ.query(sql, sqlArgs);
   }
 
-  /* LOGIC FOR UPDATING THE POSITION OF OTHER CARDS **************************/
-
   /** @returns {Promise} */
-  static updateDestinationAndSourceCells(updatedCard, originalCard) {
+  updateDestinationAndSourceCells(originalCard) {
     debug("Entering updateDestinationAndSourceCells");
     // If no originalData provided then assume it's a new card
     if (!originalCard) {
@@ -107,15 +97,32 @@ class Card {
     }
     return new Promise( async (resolve, reject) => {
       try {
-        await Card.updateDestinationCell(updatedCard, originalCard);
-        await Card.updateSourceCell(updatedCard, originalCard);
+        await CardMover.updateDestinationCell(this, originalCard);
+        await CardMover.updateSourceCell(this, originalCard);
         resolve();
       } catch(error) {
-        console.error("Error in updateDestinationAndSourceCells", error);
+        console.error("Error updating destination and source cells", error);
         reject(error);
       }
     });
   }
+
+  /* WORK IN PROGRESS ********************************************************/
+
+  /**
+   * TODO: (1) Test, (2) Order by archive date (instead of created date).
+   */
+  static fetchArchive() {
+    const sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC';
+    return PQ.query(sql);
+  }
+
+}
+
+module.exports = Card;
+
+/** Handles the complicated bits! */
+class CardMover {
 
   /**
    * Update position of cards within the destination cell
@@ -125,12 +132,12 @@ class Card {
   static updateDestinationCell(card, originalCard) {
     debug("Entering updateDestinationCell");
 
-    let originalPosition = originalCard.position;
+    const originalPosition = originalCard.position;
     // If the card has moved cell, then we want to update all card's in the cell with a bigger position
     if ((card.rowId != originalCard.rowId) || (card.colId != originalCard.colId)) {
       originalPosition = ModelUtil.MAX_POSITION;
     }
-    let sqlArgs = [card.rowId, card.colId, card.position, originalPosition, card.id];
+    const sqlArgs = [card.rowId, card.colId, card.position, originalPosition, card.id];
 
     // Default SQL for when card is added to a cell (or it's order is DEcreased within a cell)
     let sql = 'UPDATE card SET position = (position + 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND position <= ? AND id != ?';
@@ -157,26 +164,34 @@ class Card {
       return Promise.resolve(card);
 
     } else {
-      let sqlArgs = [originalCard.rowId, originalCard.colId, originalCard.position, card.id];
+      const sqlArgs = [originalCard.rowId, originalCard.colId, originalCard.position, card.id];
 
       // Move up cards that were below <code>card</code>
-      let sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND id != ?';
+      const sql = 'UPDATE card SET position = (position - 1) WHERE row_id = ? AND col_id = ? AND position >= ? AND id != ?';
       
       debug(sql, sqlArgs);
       return PQ.query(sql, sqlArgs);
     }
   }
-
-  /* WORK IN PROGRESS ********************************************************/
-
-  /**
-   * TODO: (1) Test, (2) Order by archive date (instead of created date).
-   */
-  static fetchArchive() {
-    let sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC';
-    return PQ.query(sql);
-  }
-
 }
 
-module.exports = Card
+const schemaForSave = Joi.object().keys({ // Via card editor
+  id: Joi.number().integer().min(0).required(),
+  title: Joi.string(),
+  description: Joi.string().allow(null),
+  isArchived: Joi.boolean()
+}).unknown(true);
+
+const schemaForCreate = Joi.object().keys({ // Via "Add card"
+  rowId: Joi.number().integer().min(0).required(),
+  colId: Joi.number().integer().min(0).required(),
+  position: Joi.number().integer().min(0).required(),
+  title: Joi.string().required()
+}).unknown(true);
+
+const schemaForMove = Joi.object().keys({ // Via drag and drop
+  id: Joi.number().integer().min(0).required(),
+  rowId: Joi.number().integer().min(0).required(),
+  colId: Joi.number().integer().min(0).required(),
+  position: Joi.number().integer().min(0).required()
+}).unknown(true);

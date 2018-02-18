@@ -2,7 +2,7 @@ let mysql       = require('mysql');
 let assert      = require('assert');
 let requireChai = require('chai');
 let dbConfig    = require('../../config/db-config').getDbConfig();
-let Card        = require('../../models/Card');
+let CardModel   = require('../../models/Card');
 let Row         = require('../../models/Row');
 let fs          = require('fs');
 
@@ -124,24 +124,25 @@ async function moveToCol2(cardToMove, toPosition, titleCheck, positionCheck, src
       colId: 2,
       position: toPosition
     }
-    let originalCard = await Card.fetchCardById(cardArg.id)
+    let originalCard = await CardModel.fetchById(cardArg.id)
     console.log("cardArg", cardArg)
     assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    let updatedCard = await Card.updateCard(cardArg)
+    let updatedCard = new CardModel(cardArg);
+    await updatedCard.updatePosition()
     console.log('CARD UPDATED', cardToMove);
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 2);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(updatedCard, originalCard);//originalCardData)
+    await updatedCard.updateDestinationAndSourceCells(originalCard);
     let col2Cards = await fetchCardsByCol(2)
     let col2Titles = summariseCardTitles(col2Cards)
     let col2Positions = summariseCardPositions(col2Cards)
     assert.equal(col2Titles, titleCheck)
     assert.equal(col2Positions, positionCheck)
 
-    await assertSourcePositions(srcTitleCheck, srcPositionCheck, originalCard.colId);//cardArg.originalData.col_id)
+    await assertSourcePositions(srcTitleCheck, srcPositionCheck, originalCard.colId);
   }
   finally {
     await runSqlFile('./test/integration/teardown.sql')
@@ -159,16 +160,17 @@ async function moveToCol3(cardToMove, toPosition, titleCheck, positionCheck, src
       colId: 3,
       position: toPosition
     }
-    let originalCard = await Card.fetchCardById(cardArg.id)
+    let originalCard = await CardModel.fetchById(cardArg.id)
     console.log("cardArg", cardArg)
     assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    let updatedCard = await Card.updateCard(cardArg)
+    let updatedCard = new CardModel(cardArg);
+    await updatedCard.updatePosition(cardArg)
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 3);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
+    await updatedCard.updateDestinationAndSourceCells(originalCard)
     let col3Cards = await fetchCardsByCol(3)
     let col3Titles = summariseCardTitles(col3Cards)
     let col3Positions = summariseCardPositions(col3Cards)
@@ -194,24 +196,23 @@ async function moveToColB2(cardToMove, toPosition, titleCheck, positionCheck, sr
       colId: 2,
       position: toPosition
     }
-    let originalCard = await Card.fetchCardById(cardArg.id)
+    let originalCard = await CardModel.fetchById(cardArg.id)
     console.log("cardArg", cardArg)
     assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    let updatedCard = await Card.updateCard(cardArg)
+    let updatedCard = new CardModel(cardArg);
+    await updatedCard.updatePosition()
     let updatedCardData = await fetchCardByTag(cardToMove)
     assert.equal(updatedCardData.col_id, 2);
     assert.equal(updatedCardData.row_id, rowBData.id);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
+    await updatedCard.updateDestinationAndSourceCells(originalCard)
     let col2Cards = await fetchCardsByCol(2, '0F65u28Rc66ORYII integration row B')
     let col2Titles = summariseCardTitles(col2Cards)
     let col2Positions = summariseCardPositions(col2Cards)
     assert.equal(col2Titles, titleCheck, 'destination titles')
     assert.equal(col2Positions, positionCheck, 'destination positions')
-
-    //await assertSourcePositions(srcTitleCheck, srcPositionCheck, cardArg.originalData.col_id)
   }
   finally {
     await runSqlFile('./test/integration/teardown.sql')
@@ -222,32 +223,31 @@ async function moveToColB1(cardToMove, toPosition, titleCheck, positionCheck, sr
   try {
     await runSqlFile('./test/integration/setup.sql')
 
-    let cardData = await fetchCardByTag(cardToMove)
-    let rowBData = await fetchRowB()
+    let cardData = await fetchCardByTag(cardToMove);
+    let rowBData = await fetchRowB();
     let cardArg = {
       id: cardData.id,
       rowId: rowBData.id,
       colId: 1,
       position: toPosition
     }
-    let originalCard = await Card.fetchCardById(cardArg.id)
-    console.log("cardArg", cardArg)
+    let originalCard = await CardModel.fetchById(cardArg.id);
+    console.log("cardArg", cardArg);
     assert.equal(originalCard.title, "0F65u28Rc66ORYII card " + cardToMove);
 
-    let updatedCard = await Card.updateCard(cardArg)
-    let updatedCardData = await fetchCardByTag(cardToMove)
+    let updatedCard = new CardModel(cardArg);
+    await updatedCard.updatePosition();
+    let updatedCardData = await fetchCardByTag(cardToMove);
     assert.equal(updatedCardData.col_id, 1);
     assert.equal(updatedCardData.row_id, rowBData.id);
     assert.equal(updatedCardData.position, toPosition);
 
-    await Card.updateDestinationAndSourceCells(updatedCard, originalCard)
-    let col1Cards = await fetchCardsByCol(1, '0F65u28Rc66ORYII integration row B')
-    let col1Titles = summariseCardTitles(col1Cards)
-    let col1Positions = summariseCardPositions(col1Cards)
-    assert.equal(col1Titles, titleCheck, 'destination titles')
-    assert.equal(col1Positions, positionCheck, 'destination positions')
-
-    //await assertSourcePositions(srcTitleCheck, srcPositionCheck, cardArg.originalData.col_id)
+    await updatedCard.updateDestinationAndSourceCells(originalCard);
+    let col1Cards = await fetchCardsByCol(1, '0F65u28Rc66ORYII integration row B');
+    let col1Titles = summariseCardTitles(col1Cards);
+    let col1Positions = summariseCardPositions(col1Cards);
+    assert.equal(col1Titles, titleCheck, 'destination titles');
+    assert.equal(col1Positions, positionCheck, 'destination positions');
   }
   finally {
     await runSqlFile('./test/integration/teardown.sql')
