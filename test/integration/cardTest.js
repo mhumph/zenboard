@@ -1,24 +1,25 @@
-let mysql       = require('mysql');
-let assert      = require('assert');
-let requireChai = require('chai');
-let dbConfig    = require('../../config/db-config').getDbConfig();
-let CardModel   = require('../../models/Card');
-let fs          = require('fs');
+const mysql       = require('mysql');
+const assert      = require('assert');
+const requireChai = require('chai');
+const TestUtil    = require('./testUtil');
+const dbConfig    = require('../../config/db-config').getDbConfig();
+const CardModel   = require('../../models/Card');
+const fs          = require('fs');
 
 // Moving a card is more complicated and has separate tests (cardMoveTest.js)
 
 describe('Card', function() {
 
   beforeEach(async function() {
-    await runSqlFile('./test/integration/setup.sql');
+    await TestUtil.runSqlFile('./test/integration/setup.sql');
   });
 
   afterEach(async function() {
-    await runSqlFile('./test/integration/teardown.sql')
+    await TestUtil.runSqlFile('./test/integration/teardown.sql')
   })
 
   it('Save model', async function() {
-    const cardData = await fetchCardByTag('1,1');
+    const cardData = await TestUtil.fetchCardByTag('1,1');
     const cardUpdate = {
       id: cardData.id,
       title: 'my title',
@@ -48,7 +49,7 @@ describe('Card', function() {
   });
 
   it('Create model', async function() {
-    const cardData = await fetchCardByTag('1,1');
+    const cardData = await TestUtil.fetchCardByTag('1,1');
     const card = new CardModel({
       title: 'my title',
       rowId: cardData.row_id,
@@ -66,7 +67,7 @@ describe('Card', function() {
   });
 
   it('Create model error', async function() {
-    const cardData = await fetchCardByTag('1,1');
+    const cardData = await TestUtil.fetchCardByTag('1,1');
     const badCard = new CardModel({ // No position
       title: 'Blah',
       rowId: cardData.row_id,
@@ -86,42 +87,4 @@ async function truthyIfThrows(func) {
   } catch (err) {
     return true;
   }
-}
-
-function fetchCardByTag(tag) {
-  console.log("Entering fetchCardByTag")
-  let sql = "SELECT * FROM card WHERE title = '0F65u28Rc66ORYII card " + tag + "'"
-  return new Promise( function(resolve, reject) {
-    let conn = mysql.createConnection(dbConfig);
-    conn.query(sql, function(err, results) {
-      if (err) {
-        reject(err);
-      }
-      resolve(results[0]);
-    });
-    conn.end();
-  });
-}
-
-function runSqlFile(fileSpec) {
-  console.log("Entering runSqlFile", fileSpec)
-  return new Promise( (resolve, reject) => {
-    fs.readFile(fileSpec, 'utf8', (err, sql) => {
-      if (err) {
-        reject(err);
-      }
-      var connMulti = mysql.createConnection(dbConfig + '?multipleStatements=true');
-      connMulti.query(sql, (error, results, fields) => {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-      connMulti.end();
-    });
-  });
-}
-
-function initTestData() {
-  return runSqlFile('./test/integration/setup.sql') // returns a promise
 }

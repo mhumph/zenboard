@@ -58,24 +58,6 @@ class Card {
     });
   }
 
-  /* FOR "PRIVATE" USE *******************************************************/
-
-  /** Map from SQL result to JS object */
-  static sqlToJs(results) {
-    if (results.length < 1) return false;
-    const data = results[0];
-    const card = {
-      id: data.id,
-      title: data.title,
-      rowId: data.row_id,
-      colId: data.col_id,
-      position: data.position,
-      description: data.description,
-      isArchived: Boolean(data.is_archived)
-    }
-    return card;
-  }
-
   /** @returns {Promise} */
   updatePosition() {
     debug('Entering updateCard', this);
@@ -91,8 +73,8 @@ class Card {
     if (!originalCard) {
       originalCard = {
         position: ModelUtil.MAX_POSITION, // We don't want sibling cards re-ordered
-        rowId: updatedCard.rowId,
-        colId: updatedCard.colId
+        rowId: this.rowId,
+        colId: this.colId
       }
     }
     return new Promise( async (resolve, reject) => {
@@ -115,6 +97,24 @@ class Card {
   static fetchArchive() {
     const sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC';
     return PQ.query(sql);
+  }
+
+  /* FOR "PRIVATE" USE *******************************************************/
+
+  /** Map from SQL result to JS object */
+  static sqlToJs(results) {
+    if (results.length < 1) return false;
+    const data = results[0];
+    const card = {
+      id: data.id,
+      title: data.title,
+      rowId: data.row_id,
+      colId: data.col_id,
+      position: data.position,
+      description: data.description,
+      isArchived: Boolean(data.is_archived)
+    }
+    return card;
   }
 
 }
@@ -178,7 +178,7 @@ class CardMover {
 const schemaForSave = Joi.object().keys({ // Via card editor
   id: Joi.number().integer().min(0).required(),
   title: Joi.string(),
-  description: Joi.string().allow(null),
+  description: Joi.string().allow('').allow(null),
   isArchived: Joi.boolean()
 }).unknown(true);
 

@@ -108,11 +108,15 @@ class Row {
         delete card.row_id;
         delete card.col_id;
 
-        rowCell.cards.push(card);
-        row.cells[colId - 1] = rowCell;
+        if (rowCell) {
+          rowCell.cards.push(card);
+          row.cells[colId - 1] = rowCell;
 
-        if (colId == newCardId) {
-          card.isNew = true;
+          if (colId == newCardId) {
+            card.isNew = true;
+          }
+        } else {
+          console.warn('no rowCell: colId ' + colId + ', rowId ' + rowId);
         }
       } else {
         if (rowId !== null) {
