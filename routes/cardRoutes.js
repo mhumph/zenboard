@@ -11,6 +11,14 @@ const debug = require('debug')('zenboard:routes:cards');
 module.exports = function(io) {
   const module = {};
 
+  io.on('connection', function(socket) {
+    module.emitCardCreated = (card) => {
+      console.log('cardRoutes:emitCardCreated');
+      // UI may want to store card id...
+      socket.emit('cardCreated', card);
+    };
+  });
+
   module.save = async (req, res) => {
     const body = req.body;
     try {
@@ -54,12 +62,14 @@ module.exports = function(io) {
     try {
       const card = new Card(body);
       await card.create();
+      module.emitCardCreated(card);
+
       await card.updateDestinationAndSourceCells();
       res.sendStatus(200);
 
       const rows = await Row.fetchRowsDeep();
       EventsUtil.emitBoardRefreshWithRows(io, rows);
-      io.emit('cardCreate', card);
+      
     } catch(error) {
       RouteUtil.sendError(res, error);
     }

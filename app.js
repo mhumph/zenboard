@@ -16,8 +16,6 @@ const rowRoutes   = require('./routes/rowRoutes')(io);
 const cardRoutes  = require('./routes/cardRoutes')(io);
 const settingsRoutes    = require('./routes/settingsRoutes')(io);
 const Middleware  = require('./lib/web/Middleware');
-// SocketIO
-require('./lib/events/events')(io);
 
 app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
