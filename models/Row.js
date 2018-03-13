@@ -20,7 +20,8 @@ class Row {
   /** @returns {Promise} */
   static save(row) {
     debug('About to save row', row)
-    let sqlArgs = [row.title, row.position, row.description, row.isArchived, row.id];
+    const title = (row.title) ? row.title.trim() : row.title;
+    let sqlArgs = [title, row.position, row.description, row.isArchived, row.id];
     let sql = '';
     if (row.id) {
       sql = 'UPDATE row SET title = ?, position = ?, description = ?, is_archived = ? WHERE id = ?';

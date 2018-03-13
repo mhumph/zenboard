@@ -9,7 +9,7 @@ class Card {
   constructor(obj) {
     if (typeof obj === 'object') {
       this.id = obj.id;
-      this.title = obj.title;
+      this.title = (obj.title) ? obj.title.trim() : obj.title;
       this.rowId = obj.rowId;
       this.colId = obj.colId;
       this.position = obj.position;
