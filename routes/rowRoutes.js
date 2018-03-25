@@ -71,7 +71,6 @@ module.exports = function(io) {
     }
   }
 
-  /* TODO: Test */
   module.fetchArchiveDeep = async (req, response) => {
     try {
       const rows = await Row.fetchRowsDeep(true);

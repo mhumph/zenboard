@@ -92,11 +92,24 @@ class Card {
   /* WORK IN PROGRESS ********************************************************/
 
   /**
-   * TODO: (1) Test, (2) Order by archive date (instead of created date).
+   * TODO: Order by archive date (instead of created date).
    */
-  static fetchArchive() {
-    const sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY id ASC';
-    return PQ.query(sql);
+  static async fetchArchive() {
+    const sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY col_id ASC, id ASC';
+    //return PQ.query(sql);
+
+    const cards = await PQ.query(sql);
+    const cells = new Array(4);
+    for (let i = 0; i <= 3; i++) {
+      cells[i] = {
+        cards: [],
+        colId: i + 1
+      }
+    }
+    cards.forEach(cardData => {
+      cells[cardData.col_id - 1].cards.push(cardData);
+    });
+    return cells;
   }
 
   /* FOR "PRIVATE" USE *******************************************************/

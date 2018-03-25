@@ -68,9 +68,11 @@ app.get('/api/archive/cards/', cardRoutes.fetchArchive);
 
 /* ERROR HANDLING *************************************************************/
 
-// Catch 404 and forward to error handler
+// If no other resource is matched then 404
 app.use((req, res, next) => {
-  Middleware.my404ErrorHandler(req, res, next);
+  res.status(404).send({
+    error: "Resource not found!"
+  })
 });
 
 module.exports = app;

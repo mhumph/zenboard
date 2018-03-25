@@ -28,6 +28,12 @@ module.exports = function(io) {
 
       const rows = await Row.fetchRowsDeep(false);
       EventsUtil.emitBoardRefreshWithRows(io, rows);
+
+      const archivedRows = await Row.fetchRowsDeep(true);
+      io.emit('rowArchiveRefresh', archivedRows);
+
+      const archivedCards = await Card.fetchArchive();
+      io.emit('cardArchiveRefresh', archivedCards);
     } catch (error) {
       RouteUtil.sendError(res, error, 'Error saving card');
     }
@@ -79,7 +85,7 @@ module.exports = function(io) {
   module.fetchArchive = async (req, res) => {
     try {
       const archivedCards = await Card.fetchArchive();
-      RouteUtil.sendArray(res, archivedRows);
+      RouteUtil.sendArray(res, archivedCards);
     } catch(error) {
       RouteUtil.sendError(res, error);
     }
