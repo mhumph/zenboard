@@ -16,11 +16,16 @@ module.exports = function(io) {
     try {
       await Row.save(row);
       await Row.updateRowList(row);
-
-      const rows = await Row.fetchRowsDeep();
       res.sendStatus(200);
-      EventsUtil.emitBoardRefreshWithRows(io, rows);
 
+      // XXX: Should be isArchived !== true
+      if (row.isArchived !== 1) {
+        const rows = await Row.fetchRowsDeep();
+        EventsUtil.emitBoardRefreshWithRows(io, rows);
+      } else {
+        const archivedRows = await Row.fetchRowsDeep(true);
+        io.emit('rowArchiveRefresh', archivedRows);
+      }
     } catch (error) {
       RouteUtil.sendError(res, error);
     }
