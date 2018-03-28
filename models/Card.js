@@ -30,6 +30,36 @@ class Card {
     return PQ.query(sql, sqlArgs);
   }
 
+  saveForUnarchive() {
+    Joi.assert(this, schemaForSave, {allowUnknown: true});
+    const sql = 'UPDATE card SET title = ?, description = ?, position = ?, is_archived = 0 WHERE id = ?';
+    const sqlArgs = [this.title, this.description, this.position, this.id];
+    return PQ.query(sql, sqlArgs);
+  }
+
+  /**
+   * If archive status has changed then update positions etc 
+   * @returns {Promise} 
+   */
+  async saveAndCheckForAchive() {
+    const originalCard = await Card.fetchById(this.id);
+    let result;
+    
+    if ((!originalCard.isArchived) && (this.isArchived === true)) {
+      // Card is being archived
+      result = await this.save();
+      await CardMover.updateSourceCell(this, originalCard, true);
+    }
+    if ((originalCard.isArchived) && (!this.isArchived)) {
+      // Card is being unarchived. XXX: Saves unarchived card into first position, but should really be last
+      this.position = 1;  
+      originalCard.position = ModelUtil.MAX_POSITION;
+      result = await this.saveForUnarchive();
+      await CardMover.updateDestinationCell(this, originalCard);
+    }
+    return result;
+  }
+
   /** @returns {Promise} card */
   create() {
     Joi.assert(this, schemaForCreate, {allowUnknown: true});
@@ -95,7 +125,7 @@ class Card {
    * TODO: Order by archive date (instead of created date).
    */
   static async fetchArchive() {
-    const sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY col_id ASC, id ASC';
+    const sql = 'SELECT id, title, row_id, col_id FROM card WHERE is_archived = 1 ORDER BY col_id ASC, id DESC';
     //return PQ.query(sql);
 
     const cards = await PQ.query(sql);
@@ -169,11 +199,11 @@ class CardMover {
    * Update position of cards within the source cell
    * @param originalCard Card details prior to update
    */
-  static updateSourceCell(card, originalCard) {
+  static updateSourceCell(card, originalCard, hasArchiveStatusChanged = false) {
     debug("Entering updateSourceCell");
 
     // If source cell and destination cell are the same then we don't need to do anything
-    if ((card.rowId == originalCard.rowId) && (card.colId == originalCard.colId)) {
+    if (!hasArchiveStatusChanged && (card.rowId == originalCard.rowId) && (card.colId == originalCard.colId)) {
       return Promise.resolve(card);
 
     } else {

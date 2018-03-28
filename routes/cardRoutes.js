@@ -23,7 +23,7 @@ module.exports = function(io) {
     const body = req.body;
     try {
       const card = new Card(body);
-      await card.save();
+      await card.saveAndCheckForAchive();
       res.sendStatus(200);
 
       const rows = await Row.fetchRowsDeep(false);
