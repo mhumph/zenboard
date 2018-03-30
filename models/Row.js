@@ -13,7 +13,7 @@ class Row {
 
   /** @returns {Promise} */
   static fetchAll() {
-    const sql = 'SELECT id, title, position FROM row ORDER BY position ASC';
+    const sql = 'SELECT id, title, position FROM row WHERE is_archived = 0 ORDER BY position ASC';
     return PQ.query(sql);
   }
 
