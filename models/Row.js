@@ -6,9 +6,21 @@ const debug = require('debug')('zenboard:models:rows');
 class Row {
 
   /** @returns {Promise} */
-  static fetchById(id) {
+  static async fetchById(id) {
     const sql = 'SELECT id, title, position, description, is_archived FROM row WHERE id = ?';
-    return PQ.queryUnique(sql, id);
+    const result = await PQ.queryUnique(sql, id)
+    return Row.sqlToJs(result);
+  }
+
+  static sqlToJs(data) {
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      position: data.position,
+      is_archived: data.is_archived,
+      isArchived: data.is_archived
+    }
   }
 
   /** @returns {Promise} */
@@ -21,6 +33,7 @@ class Row {
   static save(row) {
     debug('About to save row', row)
     const title = (row.title) ? row.title.trim() : row.title;
+    
     let sqlArgs = [title, row.position, row.description, row.isArchived, row.id];
     let sql = '';
     if (row.id) {
@@ -146,10 +159,10 @@ class Row {
         let sqlArgs = [savedRow.position, (savedRow.originalPosition || ModelUtil.MAX_POSITION), savedRow.id];
 
         // Default SQL for when row's order is DEcreased
-        let sql = 'UPDATE row SET position = (position + 1) WHERE position >= ? AND position <= ? AND id != ?';
+        let sql = 'UPDATE row SET position = (position + 1) WHERE position >= ? AND position <= ? AND id != ? AND is_archived = 0';
         if (parseInt(savedRow.position) > savedRow.originalPosition) {
           // For when row's order is INcreased
-          sql = 'UPDATE row SET position = (position - 1) WHERE position <= ? AND position >= ? AND id != ?';
+          sql = 'UPDATE row SET position = (position - 1) WHERE position <= ? AND position >= ? AND id != ? AND is_archived = 0';
         }
         debug(sql, sqlArgs);
 

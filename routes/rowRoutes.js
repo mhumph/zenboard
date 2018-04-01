@@ -13,22 +13,39 @@ module.exports = function(io) {
 
   module.save = async (req, res) => {
     const row = req.body;
+    row.isArchivedBool = isRowArchived.bind(row);
+    
     try {
+      const originalRow = (row.id) ? await Row.fetchById(row.id) : null;
+      if ((originalRow.isArchived === 1) && (row.isArchivedBool())) {
+        row.position = 1; // Simpler to unarchive row into the top
+      }
       await Row.save(row);
-      await Row.updateRowList(row);
+      
+      if ((originalRow.isArchived === 0) && (row.isArchivedBool() === true)) {
+        row.position = ModelUtil.MAX_POSITION;  // So other rows move up
+        await Row.updateRowList(row);
+      }
+      if ((originalRow.isArchived === 1) && (row.isArchivedBool() === false)) {
+        row.originalPosition = ModelUtil.MAX_POSITION;  // So other rows move up
+        await Row.updateRowList(row);
+      }
       res.sendStatus(200);
 
-      // XXX: Should be isArchived !== true
-      if (row.isArchived !== 1) {
-        const rows = await Row.fetchRowsDeep();
-        EventsUtil.emitBoardRefreshWithRows(io, rows);
-      } else {
-        const archivedRows = await Row.fetchRowsDeep(true);
-        io.emit('rowArchiveRefresh', archivedRows);
-      }
+      const rows = await Row.fetchRowsDeep();
+      EventsUtil.emitBoardRefreshWithRows(io, rows);
+
+      const archivedRows = await Row.fetchRowsDeep(true);
+      io.emit('rowArchiveRefresh', archivedRows);
     } catch (error) {
       RouteUtil.sendError(res, error);
     }
+  }
+
+  function isRowArchived() {
+    // XXX: Can be 0/1 or true/false depending on where it's initialised
+    // XXX: Move this to Row.js 
+    return (this.isArchived === true) || (this.isArchived === 1);
   }
 
   module.fetchById = async (req, res) => {
