@@ -66,7 +66,17 @@ If you like Zenboard please GitHub star it, thanks!
 
 Zenboard uses Vue.js, Node.js and socket.io
 
+This repo is just the API (created with Express Generator). To run it:
+
 The Vue.js source is in a separate repo [here](https://github.com/mhumph/zenboard-vue).
+
+## To run locally
+```
+DEBUG=zenboard:* npm start
+```
+A snapshot of the UI is bundled in this repo. You can access it at http://localhost:3001/
+
+Here is one of the API endpoints http://localhost:3001/api/rows/deep
 
 ## Contribute
 
@@ -89,3 +99,5 @@ Zenboard isn't planning specific features for task estimating or velocity report
 To find out why, watch [this video on Modern Agile](https://www.agilealliance.org/resources/videos/modern-agile/).
 
 <img src="http://modernagile.org/img/modern_agile_wheel.svg" alt="Modern Agile" width="300" />
+
+
