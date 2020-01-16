@@ -8,11 +8,9 @@ Try it out here http://zenbrd.herokuapp.com/
 
 We believe that your team can achieve great things.
 
-You don't need the world's most talented individuals, but you do need great teamwork.
+You don't need the world's most talented individuals, but you do need laser focus, deep collaboration and "user-centricity".
 
-You need laser focus, deep collaboration and "user-centricity".
-
-Zenboard is a team board that makes all of this easier. Read more [here](https://yojava.wordpress.com/2018/01/01/give-your-team-superpowers/).
+Zenboard is a team board that makes all of this easier. Read more [here](https://yojava.wordpress.com/2020/01/15/team-superpowers-awesome-board/).
 
 ## Status
 
